@@ -25,7 +25,7 @@ theme_set(theme_minimal())
 
 ## The Data
 
-The data includes various chocolate
+The data includes various chocolate bars and their corresponding ratings
 
 ```{r message=FALSE, warning=FALSE}
 tuesdata <- tidytuesdayR::tt_load(2022, week = 3)
@@ -33,6 +33,8 @@ chocolate <- tuesdata$chocolate
 ```
 
 ## Explore data
+
+First we'll start by exploring the data
 
 Exploratory data analysis (EDA) is an [important part of the modeling process](https://www.tmwr.org/software-modeling.html#model-phases).
 
@@ -42,6 +44,7 @@ chocolate %>%
   geom_histogram(bins = 12)
 ```
 
+Next I will replace missing values in ingredients with the most common ingredient and remove `%` from cocoa_percent column
 ```{r}
 chocolate <- 
   chocolate %>% 
@@ -54,10 +57,8 @@ chocolate <-
   mutate(cocoa_percent = as.integer(str_remove_all(cocoa_percent, "%")))
 ```
 
+Next I bin all infrequent `ingredients`, `company_location` and `country_of_bean_origin` in "Other"category
 ```{r}
-chocolate %>% 
-  count(ingredients, sort = TRUE)
-
 chocolate <- 
   chocolate %>% 
   mutate(
@@ -77,10 +78,12 @@ chocolate <-
   )
 ```
 
+Now we can preview out data with `skimr::skim()`
 ```{r}
 skimr::skim(chocolate)
 ```
 
+## Feature Engineering
 ```{r}
 library(tidytext)
 
@@ -142,16 +145,11 @@ library(textrecipes)
 choco_recipe <- 
   # recipe for the estimator
   recipe(rating ~ most_memorable_characteristics
-         # company_location + country_of_bean_origin + cocoa_percent + 
-         #   ingredients + most_memorable_characteristics, data = choco_train
          , data = choco_train) %>%
   # steps to build the estimator
   step_tokenize(most_memorable_characteristics) %>% 
   step_tokenfilter(most_memorable_characteristics, max_tokens = 100) %>% 
   step_tf(most_memorable_characteristics) 
-# %>% 
-#   step_dummy(company_location, country_of_bean_origin, ingredients) %>% 
-#   step_normalize(cocoa_percent) 
 
 
 # Next steps are not necessary here, but are good to take a look at whats going on
