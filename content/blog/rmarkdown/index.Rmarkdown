@@ -1,11 +1,11 @@
 ---
-title: "Predicting Chocolate Bar Ratings"
+title: "Predicting chocolate bar ratings"
 subtitle: ""
 excerpt: "predicting chocolate bar ratings with tidytext"
 date: 2022-11-26
 author: "Alex Labuda"
 draft: false
-images:
+images: 
 series:
 tags: ["machine learning"]
 categories:
