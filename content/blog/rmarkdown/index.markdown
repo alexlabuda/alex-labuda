@@ -5,6 +5,8 @@ excerpt: "predicting chocolate bar ratings with tidytext"
 date: 2022-11-26
 author: "Alex Labuda"
 draft: false
+thumbnail_left: true # for list-sidebar only
+show_author_byline: true
 images: 
 series:
 tags: ["machine learning"]
@@ -228,7 +230,7 @@ library(tidymodels)
 ## ✖ dplyr::lag()      masks stats::lag()
 ## ✖ yardstick::spec() masks readr::spec()
 ## ✖ recipes::step()   masks stats::step()
-## • Search for functions across packages at https://www.tidymodels.org/find/
+## • Dig deeper into tidy modeling with R at https://www.tmwr.org
 ```
 
 ```r
