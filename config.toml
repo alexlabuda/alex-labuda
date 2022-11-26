@@ -1,4 +1,4 @@
-baseURL = "/"
+baseURL = "https://alex-labuda-blog.netlify.app/"
 theme = "hugo-apero"
 languageCode = "en"
 title = "Alex Labuda"
