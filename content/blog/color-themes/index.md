@@ -3,7 +3,7 @@ author: Alison Hill & Eric Anderson
 categories:
 - Theme Features
 date: "2021-01-27"
-draft: false
+draft: true
 excerpt: This theme offers three ways to customize your site's colors. Use one of
   8 built-in color themes, or style your own palette using named colors from the Tachyons
   design system. You may also bring your own hex codes to make fully custom color

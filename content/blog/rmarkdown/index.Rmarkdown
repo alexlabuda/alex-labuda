@@ -1,10 +1,10 @@
 ---
-title: "An Rmarkdown post"
+title: "Predicting Chocolate Bar Ratings"
 subtitle: ""
-excerpt: "testing the excerpt field"
-date: 2020-12-30
-author: "Alison Hill"
-draft: false
+excerpt: "predicting chocolate bar ratings with tidytext"
+date: 2022-11-26
+author: "Alex Labuda"
+draft: true
 images:
 series:
 tags:
@@ -13,21 +13,258 @@ layout: single
 ---
 
 
-## Air quality
-
-```{r}
-with(airquality, boxplot(Temp ~ Month))
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 5)
+library(tidyverse)
+theme_set(theme_minimal())
 ```
 
+*This template offers an opinionated guide on how to structure a modeling analysis. Your individual modeling analysis may require you to add to, subtract from, or otherwise change this structure, but consider this a general framework to start from. If you want to learn more about using tidymodels, check out our [Getting Started](https://www.tidymodels.org/start/) guide.*
 
 ```{r}
-with(airquality, plot(Ozone ~ Temp))
+tuesdata <- tidytuesdayR::tt_load(2022, week = 3)
+chocolate <- tuesdata$chocolate
+```
+
+## Explore data
+
+Exploratory data analysis (EDA) is an [important part of the modeling process](https://www.tmwr.org/software-modeling.html#model-phases).
+
+```{r}
+chocolate %>% 
+  ggplot(aes(rating)) +
+  geom_histogram(bins = 12)
 ```
 
 ```{r}
-mlev <- levels(with(airquality, as.factor(Month)))
-with(airquality, plot(Ozone ~ Temp, 
-                      pch = as.numeric(mlev), 
-                      col = mlev))
+chocolate <- 
+  chocolate %>% 
+  mutate(
+    ingredients = replace_na(ingredients, "3- B,S,C")
+    )
+
+chocolate <- 
+  chocolate %>% 
+  mutate(cocoa_percent = as.integer(str_remove_all(cocoa_percent, "%")))
 ```
 
+```{r}
+chocolate %>% 
+  count(ingredients, sort = TRUE)
+
+chocolate <- 
+  chocolate %>% 
+  mutate(
+    ingredients = ifelse(!ingredients %in% c("3- B,S,C", "2- B,S"),
+                         "Other",
+                         ingredients),
+    company_location = ifelse(!company_location %in% c("U.S.A.", "Canada", "France",
+                                                       "U.K.", "Italy", "Belgium"),
+                              "Other",
+                              company_location),
+    country_of_bean_origin = ifelse(!country_of_bean_origin %in% c("Venezuela", "Peru",
+                                                                   "Dominican Republic",
+                                                                   "Ecuador", "Madagascar",
+                                                                   "Blend", "Nicaragua"),
+                                    "Other",
+                                    country_of_bean_origin)
+  )
+```
+
+```{r}
+skimr::skim(chocolate)
+```
+
+```{r}
+library(tidytext)
+
+tidy_chocolate <- 
+  chocolate %>% 
+  # puts each word on it's own row
+  unnest_tokens(word, most_memorable_characteristics)
+
+tidy_chocolate %>% 
+  count(word, sort = TRUE)
+
+```
+
+### Rating by word count
+
+```{r}
+tidy_chocolate %>% 
+  group_by(word) %>% 
+  summarise(n = n(),
+            rating = mean(rating)) %>% 
+  ggplot(aes(n, rating)) +
+  geom_hline(yintercept = mean(chocolate$rating),
+             lty = 2, color = "gray50", size = 1.25) +
+  geom_point(color = "midnightblue", alpha = 0.7) +
+  geom_text(aes(label = word), 
+            check_overlap = TRUE, vjust = "top", hjust = "left") + 
+  scale_x_log10()
+```
+
+## Build models
+
+Let's consider how to [spend our data budget](https://www.tmwr.org/splitting.html):
+
+-   create training and testing sets
+-   create resampling folds from the *training* set
+
+```{r}
+library(tidymodels)
+
+set.seed(123)
+choco_split <- initial_split(chocolate, strata = rating)
+choco_train <- training(choco_split)
+choco_test <- testing(choco_split)
+
+set.seed(234)
+choco_folds <- vfold_cv(choco_train, strata = rating)
+choco_folds
+```
+
+## Preprocessing
+
+Let's set up our preprocessing
+
+### Recipe
+
+```{r}
+library(textrecipes)
+
+choco_recipe <- 
+  # recipe for the estimator
+  recipe(rating ~ most_memorable_characteristics
+         # company_location + country_of_bean_origin + cocoa_percent + 
+         #   ingredients + most_memorable_characteristics, data = choco_train
+         , data = choco_train) %>%
+  # steps to build the estimator
+  step_tokenize(most_memorable_characteristics) %>% 
+  step_tokenfilter(most_memorable_characteristics, max_tokens = 100) %>% 
+  step_tf(most_memorable_characteristics) 
+# %>% 
+#   step_dummy(company_location, country_of_bean_origin, ingredients) %>% 
+#   step_normalize(cocoa_percent) 
+
+
+# Next steps are not necessary here, but are good to take a look at whats going on
+
+# prep on recipe is analogous with fit on a model
+# now the steps say [trained]
+prep(choco_recipe)
+
+# bake for a recipe is like predict for a model
+prep(choco_recipe) %>% 
+  bake(new_data = NULL)
+
+```
+
+### Specs
+
+Let's create a [**model specification**](https://www.tmwr.org/models.html) for each model we want to try:
+
+```{r}
+ranger_spec <-
+  # the algorithm
+  rand_forest(trees = 500) %>%
+  # engine (computation to fit the model (keras, spark, etc.))
+  set_engine("ranger") %>% # range is the default
+  # describes the modeling problem you're working with (regression, classification, etc.)
+  set_mode("regression")
+
+ranger_spec
+
+svm_spec <- 
+  svm_linear() %>% 
+  set_engine("LiblineaR") %>% 
+  set_mode("regression")
+
+svm_spec
+```
+
+To set up your modeling code, consider using the [parsnip addin](https://parsnip.tidymodels.org/reference/parsnip_addin.html) or the [usemodels](https://usemodels.tidymodels.org/) package.
+
+Now let's build a [**model workflow**](https://www.tmwr.org/workflows.html) combining each model specification with a data preprocessor:
+
+### WorkFlow
+
+```{r}
+# we're using a workflow bc we have a more complex model preprocess
+ranger_wf <- workflow(choco_recipe, ranger_spec)
+svm_wf <- workflow(choco_recipe, svm_spec)
+```
+
+If your feature engineering needs are more complex than provided by a formula like `sex ~ .`, use a [recipe](https://www.tidymodels.org/start/recipes/). [Read more about feature engineering with recipes](https://www.tmwr.org/recipes.html) to learn how they work.
+
+## Evaluate models
+
+These models have no tuning parameters so we can evaluate them as they are. [Learn about tuning hyperparameters here.](https://www.tidymodels.org/start/tuning/)
+
+```{r}
+doParallel::registerDoParallel()
+contrl_preds <- control_resamples(save_pred = TRUE) # keep predictions
+
+svm_rs <- fit_resamples(
+  svm_wf,
+  resamples = choco_folds,
+  control = contrl_preds
+)
+
+ranger_rs <- fit_resamples(
+  ranger_wf,
+  resamples = choco_folds,
+  control = contrl_preds
+)
+```
+
+How did these two models compare?
+
+```{r}
+collect_metrics(svm_rs)
+collect_metrics(ranger_rs)
+```
+
+We can visualize these results:
+
+```{r}
+bind_rows(
+  collect_predictions(svm_rs) %>%
+    mutate(mod = "SVM"),
+  collect_predictions(ranger_rs) %>%
+    mutate(mod = "ranger")
+) %>%
+  ggplot(aes(rating, .pred, color = id)) +
+  geom_abline(lty = 2, color = "gray50", size = 1.2) + 
+  geom_jitter(width = 0.5, alpha = 0.5) +
+  facet_wrap(vars(mod)) + 
+  coord_fixed()
+```
+
+These models perform very similarly, so perhaps we would choose the simpler, linear model. The function `last_fit()` *fits* one final time on the training data and *evaluates* on the testing data. This is the first time we have used the testing data.
+
+```{r}
+final_fitted <- last_fit(svm_wf, choco_split)
+collect_metrics(final_fitted)  ## metrics evaluated on the *testing* data
+```
+
+This object contains a fitted workflow that we can use for prediction.
+
+```{r}
+final_wf <- extract_workflow(final_fitted)
+predict(final_wf, choco_test[55,])
+```
+
+You can save this fitted `final_wf` object to use later with new data, for example with `readr::write_rds()`.
+
+```{r}
+extract_workflow(final_fitted) %>% 
+  tidy() %>% 
+  filter(term != "Bias") %>% 
+  group_by(estimate > 0) %>% 
+  slice_max(abs(estimate), n = 10) %>% 
+  ungroup() %>% 
+  mutate(term = str_remove(term, "tf_most_memorable_characteristics_")) %>% 
+  ggplot(aes(estimate, fct_reorder(term, estimate), fill = estimate > 0)) +
+  geom_col(alpha = 0.8)
+```
