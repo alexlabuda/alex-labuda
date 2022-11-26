@@ -4,10 +4,10 @@ subtitle: ""
 excerpt: "predicting chocolate bar ratings with tidytext"
 date: 2022-11-26
 author: "Alex Labuda"
-draft: true
+draft: false
 images:
 series:
-tags:
+tags: ["machine learning"]
 categories:
 layout: single
 ---
@@ -19,9 +19,13 @@ library(tidyverse)
 theme_set(theme_minimal())
 ```
 
-*This template offers an opinionated guide on how to structure a modeling analysis. Your individual modeling analysis may require you to add to, subtract from, or otherwise change this structure, but consider this a general framework to start from. If you want to learn more about using tidymodels, check out our [Getting Started](https://www.tidymodels.org/start/) guide.*
+*This is a work in progress blog post where we will try to predict chocolate bar ratings based on various features*
 
-```{r}
+## The Data
+
+The data includes various chocolate
+
+```{r message=FALSE, warning=FALSE}
 tuesdata <- tidytuesdayR::tt_load(2022, week = 3)
 chocolate <- tuesdata$chocolate
 ```
