@@ -17,7 +17,7 @@ layout: single
 
 
 
-*This is a work in progress blog post where we will try to predict chocolate bar ratings based on various features*
+*In this post, we will be predicting chocolate bar ratings based on a variety of features*
 
 ## The Data
 
@@ -39,6 +39,8 @@ chocolate <- tuesdata$chocolate
 
 ## Explore data
 
+First we'll start by exploring the data
+
 Exploratory data analysis (EDA) is an [important part of the modeling process](https://www.tmwr.org/software-modeling.html#model-phases).
 
 
@@ -50,6 +52,7 @@ chocolate %>%
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-2-1.png" width="768" />
 
+Next I will replace missing values in ingredients with the most common ingredient and remove `%` from cocoa_percent column
 
 ```r
 chocolate <- 
@@ -63,28 +66,7 @@ chocolate <-
   mutate(cocoa_percent = as.integer(str_remove_all(cocoa_percent, "%")))
 ```
 
-
-```r
-chocolate %>% 
-  count(ingredients, sort = TRUE)
-```
-
-```
-## # A tibble: 21 × 2
-##    ingredients      n
-##    <chr>        <int>
-##  1 3- B,S,C      1086
-##  2 2- B,S         718
-##  3 4- B,S,C,L     286
-##  4 5- B,S,C,V,L   184
-##  5 4- B,S,C,V     141
-##  6 2- B,S*         31
-##  7 4- B,S*,C,Sa    20
-##  8 3- B,S*,C       12
-##  9 3- B,S,L         8
-## 10 4- B,S*,C,V      7
-## # … with 11 more rows
-```
+Next I bin all infrequent `ingredients`, `company_location` and `country_of_bean_origin` in "Other"category
 
 ```r
 chocolate <- 
@@ -106,6 +88,7 @@ chocolate <-
   )
 ```
 
+Now we can preview out data with `skimr::skim()`
 
 ```r
 skimr::skim(chocolate)
@@ -148,6 +131,7 @@ Table: Table 1: Data summary
 |cocoa_percent |         0|             1|   71.64|   5.62|   42|   70|   70.00|   74.0|  100|▁▁▇▁▁ |
 |rating        |         0|             1|    3.20|   0.45|    1|    3|    3.25|    3.5|    4|▁▁▅▇▇ |
 
+## Feature Engineering
 
 ```r
 library(tidytext)
@@ -230,7 +214,7 @@ library(tidymodels)
 ## ✖ dplyr::lag()      masks stats::lag()
 ## ✖ yardstick::spec() masks readr::spec()
 ## ✖ recipes::step()   masks stats::step()
-## • Learn how to get started at https://www.tidymodels.org/start/
+## • Use suppressPackageStartupMessages() to eliminate package startup messages
 ```
 
 ```r
@@ -274,16 +258,11 @@ library(textrecipes)
 choco_recipe <- 
   # recipe for the estimator
   recipe(rating ~ most_memorable_characteristics
-         # company_location + country_of_bean_origin + cocoa_percent + 
-         #   ingredients + most_memorable_characteristics, data = choco_train
          , data = choco_train) %>%
   # steps to build the estimator
   step_tokenize(most_memorable_characteristics) %>% 
   step_tokenfilter(most_memorable_characteristics, max_tokens = 100) %>% 
   step_tf(most_memorable_characteristics) 
-# %>% 
-#   step_dummy(company_location, country_of_bean_origin, ingredients) %>% 
-#   step_normalize(cocoa_percent) 
 
 
 # Next steps are not necessary here, but are good to take a look at whats going on

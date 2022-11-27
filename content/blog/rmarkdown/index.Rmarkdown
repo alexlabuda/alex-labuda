@@ -21,7 +21,7 @@ library(tidyverse)
 theme_set(theme_minimal())
 ```
 
-*This is a work in progress blog post where we will try to predict chocolate bar ratings based on various features*
+*In this post, we will be predicting chocolate bar ratings based on a variety of features*
 
 ## The Data
 
