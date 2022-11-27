@@ -479,6 +479,8 @@ predict(final_wf, choco_test[55,])
 
 You can save this fitted `final_wf` object to use later with new data, for example with `readr::write_rds()`.
 
+Here we can see words most commonly associated with good ratings, and bad ratings
+
 
 ```r
 extract_workflow(final_fitted) %>% 
