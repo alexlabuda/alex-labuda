@@ -8,7 +8,7 @@ audio_link_label: "" # leave blank to exclude
 link_list_label: "Interests" # bookmarks, elsewhere, etc.
 link_list:
 - name: Hiking
-  url: https://en.wikipedia.org/wiki/Hiking
+  url: https://www.greatnortherncatskills.com/outdoors/kaaterskill-falls
 - name: Music
   url: https://en.wikipedia.org/wiki/The_Black_Keys
 - name: Spinning
