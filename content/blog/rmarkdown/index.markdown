@@ -66,7 +66,7 @@ chocolate <-
   mutate(cocoa_percent = as.integer(str_remove_all(cocoa_percent, "%")))
 ```
 
-Next I bin all infrequent `ingredients`, `company_location` and `country_of_bean_origin` in "Other"category
+Next I bin all infrequent `ingredients`, `company_location` and `country_of_bean_origin` in "Other" category
 
 ```r
 chocolate <- 
@@ -133,6 +133,8 @@ Table: Table 1: Data summary
 
 ## Feature Engineering
 
+Here we will unnest each word in `most_memorable_characteristics` and examine. We will then use these in our predictions
+
 ```r
 library(tidytext)
 
@@ -164,6 +166,7 @@ tidy_chocolate %>%
 
 ### Rating by word count
 
+We can examine most common words in this field
 
 ```r
 tidy_chocolate %>% 
@@ -214,7 +217,7 @@ library(tidymodels)
 ## ✖ dplyr::lag()      masks stats::lag()
 ## ✖ yardstick::spec() masks readr::spec()
 ## ✖ recipes::step()   masks stats::step()
-## • Use suppressPackageStartupMessages() to eliminate package startup messages
+## • Learn how to get started at https://www.tidymodels.org/start/
 ```
 
 ```r
