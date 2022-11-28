@@ -1,24 +1,20 @@
 ---
 title: "Predicting customer lifetime value"
+subtitle: ""
 author: "Alex Labuda"
 date: "2022-11-27"
-excerpt: using tidymodels to predict customer lifetime value and identify churned
-  customers
+excerpt: using tidymodels to predict customer lifetime value and identify churned customers
 subtitle: ''
 draft: false
-thumbnail_left: yes
-show_author_byline: yes
-images: null
-series: null
-tags:
-- machine learning
-- data wrangling
 categories: null
+thumbnail_left: true # for list-sidebar only
+show_author_byline: true
+images: 
+series:
+tags: ["machine learning"]
+categories:
 layout: single
-editor_options: 
-  chunk_output_type: console
 ---
-
 
 
 # Customer Lifetime Value 
