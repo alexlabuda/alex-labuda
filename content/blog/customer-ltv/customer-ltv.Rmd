@@ -5,7 +5,7 @@ date: "2022-11-27"
 excerpt: using tidymodels to predict customer lifetime value and identify churned
   customers
 subtitle: ''
-draft: no
+draft: false
 thumbnail_left: yes
 show_author_byline: yes
 images: null
@@ -18,6 +18,7 @@ layout: single
 editor_options: 
   chunk_output_type: console
 ---
+
 
 
 # Customer Lifetime Value 
