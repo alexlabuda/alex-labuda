@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>data wrangling on Alex Labuda</title>
+    <link>https://alex-labuda-blog.netlify.app/tags/data-wrangling/</link>
+    <description>Recent content in data wrangling on Alex Labuda</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Alex Labuda. All rights reserved.</copyright>
+    <lastBuildDate>Sun, 27 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://alex-labuda-blog.netlify.app/tags/data-wrangling/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Predicting customer lifetime value</title>
+      <link>https://alex-labuda-blog.netlify.app/blog/customer-ltv/customer-ltv/</link>
+      <pubDate>Sun, 27 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://alex-labuda-blog.netlify.app/blog/customer-ltv/customer-ltv/</guid>
+      <description>Customer Lifetime Value CLV with Machine Learning using RFM Features
+In this blog we will wrangle customer spend and behavior data to engineer recency, frequency and monetary value features as input to our model which will predict the probability of a customer spending, as well as how much they are predicted to spend.
+This can help marketers identify and target customers they are highly likely to spend, as well customers that are highly likely to spend even more.</description>
+    </item>
+    
+  </channel>
+</rss>

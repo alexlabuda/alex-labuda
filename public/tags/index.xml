@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Alex Labuda</title>
+    <link>https://alex-labuda-blog.netlify.app/tags/</link>
+    <description>Recent content in Tags on Alex Labuda</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>© Alex Labuda. All rights reserved.</copyright>
+    <lastBuildDate>Sun, 27 Nov 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://alex-labuda-blog.netlify.app/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>data wrangling</title>
+      <link>https://alex-labuda-blog.netlify.app/tags/data-wrangling/</link>
+      <pubDate>Sun, 27 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://alex-labuda-blog.netlify.app/tags/data-wrangling/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>machine learning</title>
+      <link>https://alex-labuda-blog.netlify.app/tags/machine-learning/</link>
+      <pubDate>Sun, 27 Nov 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://alex-labuda-blog.netlify.app/tags/machine-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>hugo-site</title>
+      <link>https://alex-labuda-blog.netlify.app/tags/hugo-site/</link>
+      <pubDate>Wed, 03 Jul 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://alex-labuda-blog.netlify.app/tags/hugo-site/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

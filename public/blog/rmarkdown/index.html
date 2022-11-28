@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head>
+  
+                           
+     
+
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="generator" content="Hugo 0.107.0">
+<title>Predicting chocolate bar ratings | Alex Labuda</title>
+
+
+
+
+
+
+
+
+  
+    
+  
+<meta name="description" content="predicting chocolate bar ratings with tidytext">
+
+
+<meta property="og:site_name" content="Alex Labuda">
+<meta property="og:title" content="Predicting chocolate bar ratings | Alex Labuda">
+<meta property="og:description" content="predicting chocolate bar ratings with tidytext" />
+<meta property="og:type" content="page" />
+<meta property="og:url" content="https://alex-labuda-blog.netlify.app/blog/rmarkdown/" />
+<meta property="og:locale" content="en">
+
+
+
+
+    
+        <meta property="og:image" content="https://alex-labuda-blog.netlify.app/blog/rmarkdown/featured.jpg" >
+        <meta property="twitter:card" content="summary_large_image">
+        <meta name="twitter:image" content="https://alex-labuda-blog.netlify.app/blog/rmarkdown/featured.jpg" >
+    
+    
+  <meta itemprop="name" content="Predicting chocolate bar ratings">
+<meta itemprop="description" content="In this post, we will be predicting chocolate bar ratings based on a variety of features
+The Data The data includes various chocolate bars and their corresponding ratings
+tuesdata &lt;- tidytuesdayR::tt_load(2022, week = 3) ## ## Downloading file 1 of 1: `chocolate.csv` chocolate &lt;- tuesdata$chocolate Explore data First we&rsquo;ll start by exploring the data
+Exploratory data analysis (EDA) is an important part of the modeling process.
+chocolate %&gt;% ggplot(aes(rating)) &#43; geom_histogram(bins = 12) Next I will replace missing values in ingredients with the most common ingredient and remove % from cocoa_percent column"><meta itemprop="datePublished" content="2022-11-26T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-11-26T00:00:00+00:00" />
+<meta itemprop="wordCount" content="1528"><meta itemprop="image" content="https://alex-labuda-blog.netlify.app/blog/rmarkdown/featured.jpg">
+<meta itemprop="keywords" content="machine learning," />
+  
+  
+  <!--[if IE]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+  
+  
+  <link rel="stylesheet" href="/style.main.min.508aa34bb4fa7ebfddd6892a4ec251e1ce46ad0e0c5be6380abc84336f01b14e.css" integrity="sha256-UIqjS7T6fr/d1okqTsJR4c5GrQ4MW&#43;Y4CryEM28BsU4=" media="screen">
+  
+  
+  <script src="/panelset.min.ed1ac24b6e16f4e2481e3d1d098ae66f5bc77438aef619e6e266d8ac5b00dc72.js" type="text/javascript"></script>
+  
+  
+  <script src="/main.min.8e05682fac4f2b4ee25a77fd808f6bd5c90d4e93b466e01d8520e575b4686aab.js" type="text/javascript"></script>
+</head>
+<body>
+      <div class="grid-container single">
+<header class="site-header pt4 pb2 mb4 bb b--transparent ph5 headroom z-max" role="banner">
+  <nav class="site-nav db dt-l w-100" role="navigation">
+    <a class="site-brand db dtc-l v-mid link no-underline w-100 w-33-l tc tl-l" href="https://alex-labuda-blog.netlify.app/" title="Home">
+      <img src="/img/alex-labuda.png" class="dib db-l h2 w-auto" alt="Alex Labuda">
+    </a>
+    <div class="site-links db dtc-l v-mid w-100 w-47-l tc tr-l mt3 mt0-l ttu tracked">
+      
+        
+        
+        
+      <a class="link f6 f5-l dib pv1 ph2 " href="/about/" title="About Blogophonic">About</a>
+      
+        
+        
+        
+      <a class="link f6 f5-l dib pv1 ph2 active" href="/blog/" title="Blog">Blog</a>
+      
+      
+    </div>
+  </nav>
+</header>
+
+<main class="page-main pa4" role="main">
+  <section class="page-content mw7 center">
+    <article class="post-content pa0 ph4-l">
+      <header class="post-header">
+        <h1 class="f1 lh-solid measure-narrow mb3 fw4">Predicting chocolate bar ratings</h1>
+        
+        <p class="f6 measure lh-copy mv1">By Alex Labuda</p>
+        <p class="f7 db mv0 ttu">November 26, 2022</p>
+
+      
+
+      </header>
+      <section class="post-body pt5 pb4">
+        <p><em>In this post, we will be predicting chocolate bar ratings based on a variety of features</em></p>
+
+
+
+
+<h2 id="the-data">The Data
+  <a href="#the-data"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h2>
+<p>The data includes various chocolate bars and their corresponding ratings</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>tuesdata <span style="color:#000;font-weight:bold">&lt;-</span> tidytuesdayR<span style="color:#000;font-weight:bold">::</span><span style="color:#900;font-weight:bold">tt_load</span>(<span style="color:#099">2022</span>, week <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">3</span>)
+</span></span></code></pre></div><pre tabindex="0"><code>## 
+## 	Downloading file 1 of 1: `chocolate.csv`
+</code></pre><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>chocolate <span style="color:#000;font-weight:bold">&lt;-</span> tuesdata<span style="color:#000;font-weight:bold">$</span>chocolate
+</span></span></code></pre></div>
+
+
+
+<h2 id="explore-data">Explore data
+  <a href="#explore-data"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h2>
+<p>First we&rsquo;ll start by exploring the data</p>
+<p>Exploratory data analysis (EDA) is an 
+<a href="https://www.tmwr.org/software-modeling.html#model-phases" target="_blank" rel="noopener">important part of the modeling process</a>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">ggplot</span>(<span style="color:#900;font-weight:bold">aes</span>(rating)) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_histogram</span>(bins <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">12</span>)
+</span></span></code></pre></div><img src="https://alex-labuda-blog.netlify.app/blog/rmarkdown/index_files/figure-html/unnamed-chunk-2-1.png" width="768" />
+<p>Next I will replace missing values in ingredients with the most common ingredient and remove <code>%</code> from cocoa_percent column</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>chocolate <span style="color:#000;font-weight:bold">&lt;-</span> 
+</span></span><span style="display:flex;"><span>  chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">mutate</span>(
+</span></span><span style="display:flex;"><span>    ingredients <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">replace_na</span>(ingredients, <span style="color:#d14">&#34;3- B,S,C&#34;</span>)
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>chocolate <span style="color:#000;font-weight:bold">&lt;-</span> 
+</span></span><span style="display:flex;"><span>  chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">mutate</span>(cocoa_percent <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">as.integer</span>(<span style="color:#900;font-weight:bold">str_remove_all</span>(cocoa_percent, <span style="color:#d14">&#34;%&#34;</span>)))
+</span></span></code></pre></div><p>Next I bin all infrequent <code>ingredients</code>, <code>company_location</code> and <code>country_of_bean_origin</code> in &ldquo;Other&rdquo; category</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>chocolate <span style="color:#000;font-weight:bold">&lt;-</span> 
+</span></span><span style="display:flex;"><span>  chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">mutate</span>(
+</span></span><span style="display:flex;"><span>    ingredients <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">ifelse</span>(<span style="color:#000;font-weight:bold">!</span>ingredients <span style="color:#000;font-weight:bold">%in%</span> <span style="color:#900;font-weight:bold">c</span>(<span style="color:#d14">&#34;3- B,S,C&#34;</span>, <span style="color:#d14">&#34;2- B,S&#34;</span>),
+</span></span><span style="display:flex;"><span>                         <span style="color:#d14">&#34;Other&#34;</span>,
+</span></span><span style="display:flex;"><span>                         ingredients),
+</span></span><span style="display:flex;"><span>    company_location <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">ifelse</span>(<span style="color:#000;font-weight:bold">!</span>company_location <span style="color:#000;font-weight:bold">%in%</span> <span style="color:#900;font-weight:bold">c</span>(<span style="color:#d14">&#34;U.S.A.&#34;</span>, <span style="color:#d14">&#34;Canada&#34;</span>, <span style="color:#d14">&#34;France&#34;</span>,
+</span></span><span style="display:flex;"><span>                                                       <span style="color:#d14">&#34;U.K.&#34;</span>, <span style="color:#d14">&#34;Italy&#34;</span>, <span style="color:#d14">&#34;Belgium&#34;</span>),
+</span></span><span style="display:flex;"><span>                              <span style="color:#d14">&#34;Other&#34;</span>,
+</span></span><span style="display:flex;"><span>                              company_location),
+</span></span><span style="display:flex;"><span>    country_of_bean_origin <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">ifelse</span>(<span style="color:#000;font-weight:bold">!</span>country_of_bean_origin <span style="color:#000;font-weight:bold">%in%</span> <span style="color:#900;font-weight:bold">c</span>(<span style="color:#d14">&#34;Venezuela&#34;</span>, <span style="color:#d14">&#34;Peru&#34;</span>,
+</span></span><span style="display:flex;"><span>                                                                   <span style="color:#d14">&#34;Dominican Republic&#34;</span>,
+</span></span><span style="display:flex;"><span>                                                                   <span style="color:#d14">&#34;Ecuador&#34;</span>, <span style="color:#d14">&#34;Madagascar&#34;</span>,
+</span></span><span style="display:flex;"><span>                                                                   <span style="color:#d14">&#34;Blend&#34;</span>, <span style="color:#d14">&#34;Nicaragua&#34;</span>),
+</span></span><span style="display:flex;"><span>                                    <span style="color:#d14">&#34;Other&#34;</span>,
+</span></span><span style="display:flex;"><span>                                    country_of_bean_origin)
+</span></span><span style="display:flex;"><span>  )
+</span></span></code></pre></div><p>Now we can preview out data with <code>skimr::skim()</code></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>skimr<span style="color:#000;font-weight:bold">::</span><span style="color:#900;font-weight:bold">skim</span>(chocolate)
+</span></span></code></pre></div><p>Table: Table 1: Data summary</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Name</td>
+<td style="text-align:left">chocolate</td>
+</tr>
+<tr>
+<td style="text-align:left">Number of rows</td>
+<td style="text-align:left">2530</td>
+</tr>
+<tr>
+<td style="text-align:left">Number of columns</td>
+<td style="text-align:left">10</td>
+</tr>
+<tr>
+<td style="text-align:left">_______________________</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">Column type frequency:</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">character</td>
+<td style="text-align:left">6</td>
+</tr>
+<tr>
+<td style="text-align:left">numeric</td>
+<td style="text-align:left">4</td>
+</tr>
+<tr>
+<td style="text-align:left">________________________</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">Group variables</td>
+<td style="text-align:left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">skim_variable</th>
+<th style="text-align:right">n_missing</th>
+<th style="text-align:right">complete_rate</th>
+<th style="text-align:right">min</th>
+<th style="text-align:right">max</th>
+<th style="text-align:right">empty</th>
+<th style="text-align:right">n_unique</th>
+<th style="text-align:right">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">company_manufacturer</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">39</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">580</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:left">company_location</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">7</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:left">country_of_bean_origin</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">4</td>
+<td style="text-align:right">18</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:left">specific_bean_origin_or_bar_name</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">51</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1605</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:left">ingredients</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">8</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:left">most_memorable_characteristics</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">37</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">2487</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">skim_variable</th>
+<th style="text-align:right">n_missing</th>
+<th style="text-align:right">complete_rate</th>
+<th style="text-align:right">mean</th>
+<th style="text-align:right">sd</th>
+<th style="text-align:right">p0</th>
+<th style="text-align:right">p25</th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p75</th>
+<th style="text-align:right">p100</th>
+<th style="text-align:left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ref</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">1429.80</td>
+<td style="text-align:right">757.65</td>
+<td style="text-align:right">5</td>
+<td style="text-align:right">802</td>
+<td style="text-align:right">1454.00</td>
+<td style="text-align:right">2079.0</td>
+<td style="text-align:right">2712</td>
+<td style="text-align:left">▆▇▇▇▇</td>
+</tr>
+<tr>
+<td style="text-align:left">review_date</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">2014.37</td>
+<td style="text-align:right">3.97</td>
+<td style="text-align:right">2006</td>
+<td style="text-align:right">2012</td>
+<td style="text-align:right">2015.00</td>
+<td style="text-align:right">2018.0</td>
+<td style="text-align:right">2021</td>
+<td style="text-align:left">▃▅▇▆▅</td>
+</tr>
+<tr>
+<td style="text-align:left">cocoa_percent</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">71.64</td>
+<td style="text-align:right">5.62</td>
+<td style="text-align:right">42</td>
+<td style="text-align:right">70</td>
+<td style="text-align:right">70.00</td>
+<td style="text-align:right">74.0</td>
+<td style="text-align:right">100</td>
+<td style="text-align:left">▁▁▇▁▁</td>
+</tr>
+<tr>
+<td style="text-align:left">rating</td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3.20</td>
+<td style="text-align:right">0.45</td>
+<td style="text-align:right">1</td>
+<td style="text-align:right">3</td>
+<td style="text-align:right">3.25</td>
+<td style="text-align:right">3.5</td>
+<td style="text-align:right">4</td>
+<td style="text-align:left">▁▁▅▇▇</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+<h2 id="feature-engineering">Feature Engineering
+  <a href="#feature-engineering"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h2>
+<p>Here we will unnest each word in <code>most_memorable_characteristics</code> and examine. We will then use these in our predictions</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">library</span>(tidytext)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>tidy_chocolate <span style="color:#000;font-weight:bold">&lt;-</span> 
+</span></span><span style="display:flex;"><span>  chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#998;font-style:italic"># puts each word on it&#39;s own row</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">unnest_tokens</span>(word, most_memorable_characteristics)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>tidy_chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">count</span>(word, sort <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">TRUE</span>)
+</span></span></code></pre></div><pre tabindex="0"><code>## # A tibble: 547 × 2
+##    word        n
+##    &lt;chr&gt;   &lt;int&gt;
+##  1 cocoa     419
+##  2 sweet     318
+##  3 nutty     278
+##  4 fruit     273
+##  5 roasty    228
+##  6 mild      226
+##  7 sour      208
+##  8 earthy    199
+##  9 creamy    189
+## 10 intense   178
+## # … with 537 more rows
+</code></pre>
+
+
+
+<h3 id="rating-by-word-count">Rating by word count
+  <a href="#rating-by-word-count"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h3>
+<p>We can examine most common words in this field</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>tidy_chocolate <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">group_by</span>(word) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">summarise</span>(n <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">n</span>(),
+</span></span><span style="display:flex;"><span>            rating <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">mean</span>(rating)) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">ggplot</span>(<span style="color:#900;font-weight:bold">aes</span>(n, rating)) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_hline</span>(yintercept <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">mean</span>(chocolate<span style="color:#000;font-weight:bold">$</span>rating),
+</span></span><span style="display:flex;"><span>             lty <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">2</span>, color <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;gray50&#34;</span>, size <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1.25</span>) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_point</span>(color <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;midnightblue&#34;</span>, alpha <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.7</span>) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_text</span>(<span style="color:#900;font-weight:bold">aes</span>(label <span style="color:#000;font-weight:bold">=</span> word), 
+</span></span><span style="display:flex;"><span>            check_overlap <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">TRUE</span>, vjust <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;top&#34;</span>, hjust <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;left&#34;</span>) <span style="color:#000;font-weight:bold">+</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">scale_x_log10</span>()
+</span></span></code></pre></div><img src="https://alex-labuda-blog.netlify.app/blog/rmarkdown/index_files/figure-html/unnamed-chunk-7-1.png" width="768" />
+
+
+
+
+<h2 id="build-models">Build models
+  <a href="#build-models"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h2>
+<p>Let&rsquo;s consider how to 
+<a href="https://www.tmwr.org/splitting.html" target="_blank" rel="noopener">spend our data budget</a>:</p>
+<ul>
+<li>create training and testing sets</li>
+<li>create resampling folds from the <em>training</em> set</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">library</span>(tidymodels)
+</span></span></code></pre></div><pre tabindex="0"><code>## ── Attaching packages ────────────────────────────────────── tidymodels 1.0.0 ──
+</code></pre><pre tabindex="0"><code>## ✔ broom        1.0.1          ✔ rsample      1.1.0     
+## ✔ dials        1.0.0.9000     ✔ tune         1.0.0     
+## ✔ infer        1.0.3          ✔ workflows    1.1.0     
+## ✔ modeldata    1.0.1          ✔ workflowsets 1.0.0     
+## ✔ parsnip      1.0.2          ✔ yardstick    1.1.0     
+## ✔ recipes      1.0.1
+</code></pre><pre tabindex="0"><code>## ── Conflicts ───────────────────────────────────────── tidymodels_conflicts() ──
+## ✖ scales::discard() masks purrr::discard()
+## ✖ dplyr::filter()   masks stats::filter()
+## ✖ recipes::fixed()  masks stringr::fixed()
+## ✖ dplyr::lag()      masks stats::lag()
+## ✖ yardstick::spec() masks readr::spec()
+## ✖ recipes::step()   masks stats::step()
+## • Learn how to get started at https://www.tidymodels.org/start/
+</code></pre><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">set.seed</span>(<span style="color:#099">123</span>)
+</span></span><span style="display:flex;"><span>choco_split <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">initial_split</span>(chocolate, strata <span style="color:#000;font-weight:bold">=</span> rating)
+</span></span><span style="display:flex;"><span>choco_train <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">training</span>(choco_split)
+</span></span><span style="display:flex;"><span>choco_test <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">testing</span>(choco_split)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#900;font-weight:bold">set.seed</span>(<span style="color:#099">234</span>)
+</span></span><span style="display:flex;"><span>choco_folds <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">vfold_cv</span>(choco_train, strata <span style="color:#000;font-weight:bold">=</span> rating)
+</span></span><span style="display:flex;"><span>choco_folds
+</span></span></code></pre></div><pre tabindex="0"><code>## #  10-fold cross-validation using stratification 
+## # A tibble: 10 × 2
+##    splits             id    
+##    &lt;list&gt;             &lt;chr&gt; 
+##  1 &lt;split [1705/191]&gt; Fold01
+##  2 &lt;split [1705/191]&gt; Fold02
+##  3 &lt;split [1705/191]&gt; Fold03
+##  4 &lt;split [1706/190]&gt; Fold04
+##  5 &lt;split [1706/190]&gt; Fold05
+##  6 &lt;split [1706/190]&gt; Fold06
+##  7 &lt;split [1707/189]&gt; Fold07
+##  8 &lt;split [1707/189]&gt; Fold08
+##  9 &lt;split [1708/188]&gt; Fold09
+## 10 &lt;split [1709/187]&gt; Fold10
+</code></pre>
+
+
+
+<h2 id="preprocessing">Preprocessing
+  <a href="#preprocessing"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h2>
+<p>Let&rsquo;s set up our preprocessing</p>
+
+
+
+
+<h3 id="recipe">Recipe
+  <a href="#recipe"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">library</span>(textrecipes)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>choco_recipe <span style="color:#000;font-weight:bold">&lt;-</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#998;font-style:italic"># recipe for the estimator</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">recipe</span>(rating <span style="color:#000;font-weight:bold">~</span> most_memorable_characteristics
+</span></span><span style="display:flex;"><span>         , data <span style="color:#000;font-weight:bold">=</span> choco_train) <span style="color:#000;font-weight:bold">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#998;font-style:italic"># steps to build the estimator</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">step_tokenize</span>(most_memorable_characteristics) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">step_tokenfilter</span>(most_memorable_characteristics, max_tokens <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">100</span>) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">step_tf</span>(most_memorable_characteristics) 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#998;font-style:italic"># Next steps are not necessary here, but are good to take a look at whats going on</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#998;font-style:italic"># prep on recipe is analogous with fit on a model</span>
+</span></span><span style="display:flex;"><span><span style="color:#998;font-style:italic"># now the steps say [trained]</span>
+</span></span><span style="display:flex;"><span><span style="color:#900;font-weight:bold">prep</span>(choco_recipe)
+</span></span></code></pre></div><pre tabindex="0"><code>## Recipe
+## 
+## Inputs:
+## 
+##       role #variables
+##    outcome          1
+##  predictor          1
+## 
+## Training data contained 1896 data points and no missing data.
+## 
+## Operations:
+## 
+## Tokenization for most_memorable_characteristics [trained]
+## Text filtering for most_memorable_characteristics [trained]
+## Term frequency with most_memorable_characteristics [trained]
+</code></pre><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#998;font-style:italic"># bake for a recipe is like predict for a model</span>
+</span></span><span style="display:flex;"><span><span style="color:#900;font-weight:bold">prep</span>(choco_recipe) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">bake</span>(new_data <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">NULL</span>)
+</span></span></code></pre></div><pre tabindex="0"><code>## # A tibble: 1,896 × 101
+##    rating tf_most_memo…¹ tf_mo…² tf_mo…³ tf_mo…⁴ tf_mo…⁵ tf_mo…⁶ tf_mo…⁷ tf_mo…⁸
+##     &lt;dbl&gt;          &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1   3                 0       0       0       0       0       0       0       0
+##  2   2.75              0       0       0       0       0       0       0       0
+##  3   3                 0       0       0       0       0       0       0       0
+##  4   3                 0       0       0       0       0       0       0       0
+##  5   2.75              0       0       0       0       0       0       0       0
+##  6   3                 1       0       0       0       0       0       0       0
+##  7   2.75              0       0       0       0       0       0       0       0
+##  8   2.5               0       0       0       0       0       0       0       0
+##  9   2.75              0       0       0       0       0       0       0       0
+## 10   3                 0       0       0       0       0       0       0       0
+## # … with 1,886 more rows, 92 more variables:
+## #   tf_most_memorable_characteristics_black &lt;dbl&gt;,
+## #   tf_most_memorable_characteristics_bland &lt;dbl&gt;,
+## #   tf_most_memorable_characteristics_bold &lt;dbl&gt;,
+## #   tf_most_memorable_characteristics_bright &lt;dbl&gt;,
+## #   tf_most_memorable_characteristics_brownie &lt;dbl&gt;,
+## #   tf_most_memorable_characteristics_burnt &lt;dbl&gt;, …
+</code></pre>
+
+
+
+<h3 id="specs">Specs
+  <a href="#specs"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h3>
+<p>Let&rsquo;s create a 
+<a href="https://www.tmwr.org/models.html" target="_blank" rel="noopener"><strong>model specification</strong></a> for each model we want to try:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>ranger_spec <span style="color:#000;font-weight:bold">&lt;-</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#998;font-style:italic"># the algorithm</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">rand_forest</span>(trees <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">500</span>) <span style="color:#000;font-weight:bold">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#998;font-style:italic"># engine (computation to fit the model (keras, spark, etc.))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">set_engine</span>(<span style="color:#d14">&#34;ranger&#34;</span>) <span style="color:#000;font-weight:bold">%&gt;%</span> <span style="color:#998;font-style:italic"># range is the default</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#998;font-style:italic"># describes the modeling problem you&#39;re working with (regression, classification, etc.)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">set_mode</span>(<span style="color:#d14">&#34;regression&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ranger_spec
+</span></span></code></pre></div><pre tabindex="0"><code>## Random Forest Model Specification (regression)
+## 
+## Main Arguments:
+##   trees = 500
+## 
+## Computational engine: ranger
+</code></pre><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>svm_spec <span style="color:#000;font-weight:bold">&lt;-</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">svm_linear</span>() <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">set_engine</span>(<span style="color:#d14">&#34;LiblineaR&#34;</span>) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">set_mode</span>(<span style="color:#d14">&#34;regression&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>svm_spec
+</span></span></code></pre></div><pre tabindex="0"><code>## Linear Support Vector Machine Model Specification (regression)
+## 
+## Computational engine: LiblineaR
+</code></pre><p>To set up your modeling code, consider using the 
+<a href="https://parsnip.tidymodels.org/reference/parsnip_addin.html" target="_blank" rel="noopener">parsnip addin</a> or the 
+<a href="https://usemodels.tidymodels.org/" target="_blank" rel="noopener">usemodels</a> package.</p>
+<p>Now let&rsquo;s build a 
+<a href="https://www.tmwr.org/workflows.html" target="_blank" rel="noopener"><strong>model workflow</strong></a> combining each model specification with a data preprocessor:</p>
+
+
+
+
+<h3 id="workflow">WorkFlow
+  <a href="#workflow"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#998;font-style:italic"># we&#39;re using a workflow bc we have a more complex model preprocess</span>
+</span></span><span style="display:flex;"><span>ranger_wf <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">workflow</span>(choco_recipe, ranger_spec)
+</span></span><span style="display:flex;"><span>svm_wf <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">workflow</span>(choco_recipe, svm_spec)
+</span></span></code></pre></div><p>If your feature engineering needs are more complex than provided by a formula like <code>sex ~ .</code>, use a 
+<a href="https://www.tidymodels.org/start/recipes/" target="_blank" rel="noopener">recipe</a>. 
+<a href="https://www.tmwr.org/recipes.html" target="_blank" rel="noopener">Read more about feature engineering with recipes</a> to learn how they work.</p>
+
+
+
+
+<h2 id="evaluate-models">Evaluate models
+  <a href="#evaluate-models"><svg class="anchor-symbol" aria-hidden="true" height="26" width="26" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0h24v24H0z" fill="currentColor"></path>
+      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76.0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71.0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71.0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76.0 5-2.24 5-5s-2.24-5-5-5z"></path>
+    </svg></a>
+</h2>
+<p>These models have no tuning parameters so we can evaluate them as they are. 
+<a href="https://www.tidymodels.org/start/tuning/" target="_blank" rel="noopener">Learn about tuning hyperparameters here.</a></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>doParallel<span style="color:#000;font-weight:bold">::</span><span style="color:#900;font-weight:bold">registerDoParallel</span>()
+</span></span><span style="display:flex;"><span>contrl_preds <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">control_resamples</span>(save_pred <span style="color:#000;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">TRUE</span>) <span style="color:#998;font-style:italic"># keep predictions</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>svm_rs <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">fit_resamples</span>(
+</span></span><span style="display:flex;"><span>  svm_wf,
+</span></span><span style="display:flex;"><span>  resamples <span style="color:#000;font-weight:bold">=</span> choco_folds,
+</span></span><span style="display:flex;"><span>  control <span style="color:#000;font-weight:bold">=</span> contrl_preds
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ranger_rs <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">fit_resamples</span>(
+</span></span><span style="display:flex;"><span>  ranger_wf,
+</span></span><span style="display:flex;"><span>  resamples <span style="color:#000;font-weight:bold">=</span> choco_folds,
+</span></span><span style="display:flex;"><span>  control <span style="color:#000;font-weight:bold">=</span> contrl_preds
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p>How did these two models compare?</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">collect_metrics</span>(svm_rs)
+</span></span></code></pre></div><pre tabindex="0"><code>## # A tibble: 2 × 6
+##   .metric .estimator  mean     n std_err .config             
+##   &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;               
+## 1 rmse    standard   0.348    10 0.00704 Preprocessor1_Model1
+## 2 rsq     standard   0.365    10 0.0146  Preprocessor1_Model1
+</code></pre><div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">collect_metrics</span>(ranger_rs)
+</span></span></code></pre></div><pre tabindex="0"><code>## # A tibble: 2 × 6
+##   .metric .estimator  mean     n std_err .config             
+##   &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;               
+## 1 rmse    standard   0.344    10 0.00715 Preprocessor1_Model1
+## 2 rsq     standard   0.379    10 0.0151  Preprocessor1_Model1
+</code></pre><p>We can visualize these results:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">bind_rows</span>(
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">collect_predictions</span>(svm_rs) <span style="color:#000;font-weight:bold">%&gt;%</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#900;font-weight:bold">mutate</span>(mod <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;SVM&#34;</span>),
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">collect_predictions</span>(ranger_rs) <span style="color:#000;font-weight:bold">%&gt;%</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#900;font-weight:bold">mutate</span>(mod <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;ranger&#34;</span>)
+</span></span><span style="display:flex;"><span>) <span style="color:#000;font-weight:bold">%&gt;%</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">ggplot</span>(<span style="color:#900;font-weight:bold">aes</span>(rating, .pred, color <span style="color:#000;font-weight:bold">=</span> id)) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_abline</span>(lty <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">2</span>, color <span style="color:#000;font-weight:bold">=</span> <span style="color:#d14">&#34;gray50&#34;</span>, size <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">1.2</span>) <span style="color:#000;font-weight:bold">+</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_jitter</span>(width <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.5</span>, alpha <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.5</span>) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">facet_wrap</span>(<span style="color:#900;font-weight:bold">vars</span>(mod)) <span style="color:#000;font-weight:bold">+</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">coord_fixed</span>()
+</span></span></code></pre></div><img src="https://alex-labuda-blog.netlify.app/blog/rmarkdown/index_files/figure-html/unnamed-chunk-14-1.png" width="768" />
+<p>These models perform very similarly, so perhaps we would choose the simpler, linear model. The function <code>last_fit()</code> <em>fits</em> one final time on the training data and <em>evaluates</em> on the testing data. This is the first time we have used the testing data.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>final_fitted <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">last_fit</span>(svm_wf, choco_split)
+</span></span><span style="display:flex;"><span><span style="color:#900;font-weight:bold">collect_metrics</span>(final_fitted)  <span style="color:#998;font-style:italic">## metrics evaluated on the *testing* data</span>
+</span></span></code></pre></div><pre tabindex="0"><code>## # A tibble: 2 × 4
+##   .metric .estimator .estimate .config             
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;               
+## 1 rmse    standard       0.385 Preprocessor1_Model1
+## 2 rsq     standard       0.340 Preprocessor1_Model1
+</code></pre><p>This object contains a fitted workflow that we can use for prediction.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span>final_wf <span style="color:#000;font-weight:bold">&lt;-</span> <span style="color:#900;font-weight:bold">extract_workflow</span>(final_fitted)
+</span></span><span style="display:flex;"><span><span style="color:#900;font-weight:bold">predict</span>(final_wf, choco_test[55,])
+</span></span></code></pre></div><pre tabindex="0"><code>## # A tibble: 1 × 1
+##   .pred
+##   &lt;dbl&gt;
+## 1  3.70
+</code></pre><p>You can save this fitted <code>final_wf</code> object to use later with new data, for example with <code>readr::write_rds()</code>.</p>
+<p>Here we can see words most commonly associated with good ratings, and bad ratings</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-r" data-lang="r"><span style="display:flex;"><span><span style="color:#900;font-weight:bold">extract_workflow</span>(final_fitted) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">tidy</span>() <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">filter</span>(term <span style="color:#000;font-weight:bold">!=</span> <span style="color:#d14">&#34;Bias&#34;</span>) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">group_by</span>(estimate <span style="color:#000;font-weight:bold">&gt;</span> <span style="color:#099">0</span>) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">slice_max</span>(<span style="color:#900;font-weight:bold">abs</span>(estimate), n <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">10</span>) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">ungroup</span>() <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">mutate</span>(term <span style="color:#000;font-weight:bold">=</span> <span style="color:#900;font-weight:bold">str_remove</span>(term, <span style="color:#d14">&#34;tf_most_memorable_characteristics_&#34;</span>)) <span style="color:#000;font-weight:bold">%&gt;%</span> 
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">ggplot</span>(<span style="color:#900;font-weight:bold">aes</span>(estimate, <span style="color:#900;font-weight:bold">fct_reorder</span>(term, estimate), fill <span style="color:#000;font-weight:bold">=</span> estimate <span style="color:#000;font-weight:bold">&gt;</span> <span style="color:#099">0</span>)) <span style="color:#000;font-weight:bold">+</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#900;font-weight:bold">geom_col</span>(alpha <span style="color:#000;font-weight:bold">=</span> <span style="color:#099">0.8</span>)
+</span></span></code></pre></div><img src="https://alex-labuda-blog.netlify.app/blog/rmarkdown/index_files/figure-html/unnamed-chunk-17-1.png" width="768" />
+
+        
+        <details closed class="f6 fw7 input-reset">
+  <dl class="f6 lh-copy">
+    <dt class="fw7">Posted on:</dt>
+    <dd class="fw5 ml0">November 26, 2022</dd>
+  </dl>
+  <dl class="f6 lh-copy">
+    <dt class="fw7">Length:</dt>
+    <dd class="fw5 ml0">8 minute read, 1528 words</dd>
+  </dl>
+  
+  
+  
+  <dl class="f6 lh-copy">
+    <dt class="fw7">Tags:</dt>
+    <dd class="fw5 ml0"> <a href="https://alex-labuda-blog.netlify.app/tags/machine-learning">machine learning</a> </dd>
+  </dl>
+  
+  <dl class="f6 lh-copy">
+    <dt class="fw7">See Also:</dt>
+    
+    <dd class="fw5 ml0"><a href="/blog/customer-ltv/customer-ltv/">Predicting customer lifetime value</a></dd>
+    
+  </dl>
+</details>
+
+      </section>
+      <footer class="post-footer">
+        <div class="post-pagination dt w-100 mt4 mb2">
+  
+  
+    <a class="prev dtc pr2 tl v-top fw6"
+    href="https://alex-labuda-blog.netlify.app/blog/customer-ltv/customer-ltv/">&larr; Predicting customer lifetime value</a>
+  
+  
+  
+</div>
+
+      </footer>
+    </article>
+    
+      
+<div class="post-comments pa0 pa4-l mt4">
+  
+  <script src="https://utteranc.es/client.js"
+          repo="apreshill/apero"
+          issue-term="pathname"
+          theme="boxy-light"
+          label="comments :crystal_ball:"
+          crossorigin="anonymous"
+          async
+          type="text/javascript">
+  </script>
+  
+</div>
+
+    
+  </section>
+</main>
+<footer class="site-footer pv4 bt b--transparent ph5" role="contentinfo">
+  <nav class="db dt-l w-100">
+    <p class="site-copyright f7 db dtc-l v-mid w-100 w-33-l tc tl-l pv2 pv0-l mv0 lh-copy">
+      © Alex Labuda. All rights reserved.
+      <span class="middot-divider"></span>
+      Made with <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title"><a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/hugo-apero/" rel="dct:source">Hugo Apéro</a></span>.
+      <br />
+      
+Based on <span xmlns:dct="http://purl.org/dc/terms/" property="dct:title"><a xmlns:dct="http://purl.org/dc/terms/" href="https://github.com/formspree/blogophonic-hugo" rel="dct:source">Blogophonic</a></span> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://formspree.io" property="cc:attributionName" rel="cc:attributionURL">Formspree</a>.
+    </p>
+    
+    <div class="site-social-links db dtc-l v-mid w-100 w-33-l tc pv2 pv0-l mv0">
+      <div class="social-icon-links" aria-hidden="true">
+  
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <a class="link dib h1 w1 ml0 mr2 f6 o-90 glow" href="https://www.linkedin.com/in/alex-labuda/" title="linkedin" target="_blank" rel="me noopener">
+      <i class="fab fa-linkedin fa-lg fa-fw"></i>
+    </a>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <a class="link dib h1 w1 ml0 mr2 f6 o-90 glow" href="https://alex-labuda-portfolio.netlify.app/" title="star" target="_blank" rel="me noopener">
+      <i class="far fa-star fa-lg fa-fw"></i>
+    </a>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <a class="link dib h1 w1 ml0 mr2 f6 o-90 glow" href="https://github.com/alexlabuda" title="github" target="_blank" rel="me noopener">
+      <i class="fab fa-github fa-lg fa-fw"></i>
+    </a>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+    <a class="link dib h1 w1 ml0 mr2 f6 o-90 glow" href="mailto::alexlabuda@gmail.com" title="envelope" >
+      <i class="far fa-envelope fa-lg fa-fw"></i>
+    </a>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <a class="link dib h1 w1 ml0 mr2 f6 o-90 glow" href="https://public.tableau.com/app/profile/alexlabuda" title="bolt" target="_blank" rel="me noopener">
+      <i class="fas fa-bolt fa-lg fa-fw"></i>
+    </a>
+  
+</div>
+
+    </div>
+    
+    <div class="site-links f6 db dtc-l v-mid w-100 w-67-l tc tr-l pv2 pv0-l mv0">
+      
+      <a class="dib pv1 ph2 link" href="/license/" title="License">License</a>
+      
+    </div>
+  </nav>
+  
+    <script>
+
+    var i, text, code, codes = document.getElementsByTagName('code');
+    for (let i = 0; i < codes.length;) {
+      code = codes[i];
+      if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+        text = code.textContent;
+        if (/^\$[^$]/.test(text) && /[^$]\$$/.test(text)) {
+          text = text.replace(/^\$/, '\\(').replace(/\$$/, '\\)');
+          code.textContent = text;
+        }
+        if (/^\\\((.|\s)+\\\)$/.test(text) ||
+            /^\\\[(.|\s)+\\\]$/.test(text) ||
+            /^\$(.|\s)+\$$/.test(text) ||
+            /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+          code.outerHTML = code.innerHTML;  
+          continue;
+        }
+      }
+      i++;
+    }
+</script>
+
+  
+    
+    
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/contrib/auto-render.min.js" integrity="sha384-vZTG03m+2yp6N6BNi5iM4rW4oIwk5DfcNdFfxkk9ZWpDriOkXX8voJBFrAO7MpVl" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+
+
+
+    
+  
+  
+</footer>
+
+      </div>
+    </body>
+</html>
