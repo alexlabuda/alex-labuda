@@ -1,12 +1,10 @@
 ---
 title: "Predicting customer lifetime value"
 subtitle: ""
+excerpt: "We'll predict customer lifetime value by creating RFM features to fit our model"
+date: 2022-11-27
 author: "Alex Labuda"
-date: "2022-11-27"
-excerpt: using tidymodels to predict customer lifetime value and identify churned customers
-subtitle: ''
 draft: false
-categories: null
 thumbnail_left: true # for list-sidebar only
 show_author_byline: true
 images: 
