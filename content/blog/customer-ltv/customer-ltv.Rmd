@@ -4,7 +4,7 @@ subtitle: ""
 excerpt: "using tidymodels to predict customer lifetime value and identify churned customers"
 date: 2022-11-27
 author: "Alex Labuda"
-draft: true
+draft: false
 thumbnail_left: true # for list-sidebar only
 show_author_byline: true
 images: 
@@ -19,7 +19,7 @@ layout: single
 
 CLV with Machine Learning using RFM Features 
 
-In this blog we will wrangle customer spend and behaviour data to engineer recency, frequency and monetary value features as input to our model which will predict the probability of a customer spending, as well as how much they are predicted to spend.
+In this blog we will wrangle customer spend and behavior data to engineer recency, frequency and monetary value features as input to our model which will predict the probability of a customer spending, as well as how much they are predicted to spend.
 
 This can help marketers identify and target customers they are highly likely to spend, as well customers that are highly likely to spend even more.
 
@@ -36,14 +36,14 @@ library(gt)
 # Data Prep ----
 ```{r echo = FALSE, results='asis'}
 library(knitr)
-ace_raw <- read_csv("data/ace_cust_sales.csv")
+cust_raw <- read_csv("data/cust_sales.csv")
 
-kable(ace_raw[1:5,])
+kable(cust_raw[1:5,])
 ```
 
 
 ```{r}
-cdnow_tbl <- ace_raw %>%
+cdnow_tbl <- cust_raw %>%
     select(date, customer_id, order_total) %>%
     set_names(
         c("date", "customer_id", "price")
@@ -421,15 +421,15 @@ vip(wflw_spend_total_xgb$fit$fit,
 SAVE WORK
 
 ```{r}
-fs::dir_create("ace/artifacts")
+fs::dir_create("cust/artifacts")
 
-wflw_spend_prob_xgb %>% write_rds("ace/artifacts/ace_model_prob.rds")
-wflw_spend_total_xgb %>% write_rds("ace/artifacts/ace_model_spend.rds")
+wflw_spend_prob_xgb %>% write_rds("cust/artifacts/bus_model_prob.rds")
+wflw_spend_total_xgb %>% write_rds("cust/artifacts/bus_model_spend.rds")
 ```
 
 ```{r}
-vi_model(wflw_spend_prob_xgb$fit$fit) %>% write_rds("ace/artifacts/ace_vi_prob.rds")
-vi_model(wflw_spend_total_xgb$fit$fit) %>% write_rds("ace/artifacts/ace_vi_spend.rds")
+vi_model(wflw_spend_prob_xgb$fit$fit) %>% write_rds("cust/artifacts/bus_vi_prob.rds")
+vi_model(wflw_spend_total_xgb$fit$fit) %>% write_rds("cust/artifacts/bus_vi_spend.rds")
 ```
 
 
@@ -448,7 +448,7 @@ predictions_all_tbl <- bind_cols(
 
 
 ```{r}
-predictions_all_tbl %>% write_rds("ace/artifacts/ace_predictions_all_tbl.rds")
+predictions_all_tbl %>% write_rds("cust/artifacts/bus_predictions_all_tbl.rds")
 ```
 
 
@@ -490,7 +490,7 @@ predictions_test_tbl %>%
 
 
 ```{r}
-prediction_tbl_1 <- readr::read_rds("ace/artifacts/ace_predictions_all_tbl.rds")
+prediction_tbl_1 <- readr::read_rds("cust/artifacts/bus_predictions_all_tbl.rds")
 ```
 
 
@@ -522,7 +522,7 @@ big_spenders <- prediction %>%
     # filter("90-Day Spend (Predict)" >= 150.00) %>%
     gt() %>%
     tab_header(
-        title = md("**ACE Fitness -** Customer Analytics"),
+        title = md("**Business A -** Customer Analytics"),
         subtitle = md("**Predicted Big Spenders**")
     ) %>%
     fmt_number(
