@@ -1,16 +1,19 @@
 ---
 title: "Predicting customer lifetime value"
-subtitle: ""
-excerpt: "using tidymodels to predict customer lifetime value and identify churned customers"
-date: 2022-11-27
 author: "Alex Labuda"
-draft: false
-thumbnail_left: true # for list-sidebar only
-show_author_byline: true
-images: 
-series:
-tags: ["machine learning", "data wrangling"]
-categories:
+date: "2022-11-27"
+excerpt: using tidymodels to predict customer lifetime value and identify churned
+  customers
+subtitle: ''
+draft: no
+thumbnail_left: yes
+show_author_byline: yes
+images: null
+series: null
+tags:
+- machine learning
+- data wrangling
+categories: null
 layout: single
 ---
 
@@ -33,7 +36,7 @@ library(gt)
 ```
 
 
-# Data Prep ----
+# Data Prep
 ```{r echo = FALSE, results='asis', warning=FALSE, message=FALSE}
 library(knitr)
 cust_raw <- read_csv("data/cust_sales.csv")
@@ -50,7 +53,7 @@ cdnow_tbl <- cust_raw %>%
     ) %>%
     mutate(date = mdy(as.character(date))) %>%
     mutate(date = ymd(as.character(date))) %>%
-    filter(date >= ymd("2022-02-26"))            # get exactly 180 days of data
+    filter(date >= ymd("2022-02-26")) %>%             # get exactly 180 days of data
     # mutate(price = as.double(price)) %>%
     drop_na()
 ```
@@ -91,7 +94,7 @@ cdnow_cohort_tbl <- cdnow_tbl %>%
 ```
 
 
-# Visualize: Spend Distribution ----
+# Visualize: Spend Distribution 
 ```{r warning=FALSE, message=FALSE}
 tidymodels_prefer()
 
