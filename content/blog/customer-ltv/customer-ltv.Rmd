@@ -23,7 +23,7 @@ In this blog we will wrangle customer spend and behavior data to engineer recenc
 
 This can help marketers identify and target customers they are highly likely to spend, as well customers that are highly likely to spend even more.
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 library(tidymodels)
 library(vip)
 library(tidyverse)
@@ -34,7 +34,7 @@ library(gt)
 
 
 # Data Prep ----
-```{r echo = FALSE, results='asis'}
+```{r echo = FALSE, results='asis', warning=FALSE, message=FALSE}
 library(knitr)
 cust_raw <- read_csv("data/cust_sales.csv")
 
@@ -42,7 +42,7 @@ kable(cust_raw[1:5,])
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 cdnow_tbl <- cust_raw %>%
     select(date, customer_id, order_total) %>%
     set_names(
@@ -60,7 +60,7 @@ cdnow_tbl <- cust_raw %>%
 # COHORT ANALYSIS
 
 ## Get Range of Initial Purchases 
-```{r}
+```{r warning=FALSE, message=FALSE}
 cdnow_first_purchase_tbl <- cdnow_tbl %>%
     group_by(customer_id) %>%
     slice_min(date) %>%
@@ -77,7 +77,7 @@ cdnow_first_purchase_tbl %>%
 
 Set initial purchase: 1/26/2022 - 5/27/2022
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 ids_in_cohort <- cdnow_first_purchase_tbl %>%
     filter_by_time(
         .start_date = "2022-02-26",
@@ -92,7 +92,7 @@ cdnow_cohort_tbl <- cdnow_tbl %>%
 
 
 # Visualize: Spend Distribution ----
-```{r}
+```{r warning=FALSE, message=FALSE}
 tidymodels_prefer()
 
 cdnow_cohort_tbl %>%
@@ -103,7 +103,7 @@ cdnow_cohort_tbl %>%
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 cdnow_cohort_tbl %>%
     select(price) %>%
     filter(price > 0) %>%
@@ -113,7 +113,7 @@ cdnow_cohort_tbl %>%
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 ymin <- min(cdnow_cohort_tbl$price)
 
 y25 <- quantile(cdnow_cohort_tbl$price, 0.25)
@@ -130,7 +130,7 @@ upper_fence <- y75 + 8 * iqr
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 cdnow_cohort_tbl <- cdnow_cohort_tbl %>%
     mutate(price = ifelse(price > upper_fence, upper_fence, price))
 
@@ -140,7 +140,7 @@ cdnow_cohort_tbl %>% skimr::skim()
 
 # Visualize: Total Cohort Purchases
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 cdnow_cohort_tbl %>%
     summarize_by_time(
         total_price = sum(price, na.rm = TRUE),
@@ -152,7 +152,7 @@ cdnow_cohort_tbl %>%
 
 # Visualize: Individual Customer Purchases
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 n    <- 1:10
 ids  <- unique(cdnow_cohort_tbl$customer_id)[n]
 
@@ -170,8 +170,6 @@ cdnow_cohort_tbl %>%
     geom_point(color = "#2c3e50")
 ```
 
-
-
 # MACHINE LEARNING 
 **Questions:**
   - What will the customers spend in the next 90-Days?
@@ -182,7 +180,7 @@ cdnow_cohort_tbl %>%
 
 - 1: Random Splitting by Customer ID 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 set.seed(123)
 ids_train <- cdnow_cohort_tbl %>%
     pull(customer_id) %>%
@@ -200,7 +198,7 @@ split_1_test_tbl  <- cdnow_cohort_tbl %>%
 
 - 2: Time Splitting 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 splits_2_train <- time_series_split(
     split_1_train_tbl,
     assess     = "90 days",
@@ -226,7 +224,7 @@ splits_2_test %>%
 # FEATURE ENGINEERING (RFM) 
 
 Make in-sample targets from training data 
-```{r}
+```{r warning=FALSE, message=FALSE}
 targets_train_tbl <- testing(splits_2_train) %>%
     group_by(customer_id) %>%
     summarise(
@@ -239,7 +237,7 @@ targets_train_tbl <- testing(splits_2_train) %>%
 
 
 Make out-sample targets from testing (splits_2)
-```{r}
+```{r warning=FALSE, message=FALSE}
 targets_test_tbl <- testing(splits_2_test) %>%
     group_by(customer_id) %>%
     summarise(
@@ -254,7 +252,7 @@ targets_test_tbl <- testing(splits_2_test) %>%
 # Make Training Data 
 - RFM: Recency, Frequency, Monetary
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 max_date_train <- training(splits_2_train) %>%
     pull(date) %>%
     max()
@@ -283,7 +281,7 @@ train_tbl <- training(splits_2_train) %>%
 - Repeat for testing data
 - Need full customer history: training splits 1 and 2
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 test_tbl <- training(splits_2_test) %>%
     group_by(customer_id) %>%
     summarise(
@@ -307,7 +305,7 @@ test_tbl <- training(splits_2_test) %>%
 
 Model 1: 90-Day Spend Prediction
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 recipe_spend_total <- recipe(spend_90_total ~ ., data = train_tbl) %>%
     step_center() %>%
     step_rm(spend_90_flag, customer_id)
@@ -316,7 +314,7 @@ recipe_spend_total <- recipe(spend_90_total ~ ., data = train_tbl) %>%
 
 Model 2: 90-Day Spend Probability
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 recipe_spend_prob <- recipe(spend_90_flag ~ ., data = train_tbl) %>%
     step_center() %>%
     step_rm(spend_90_total, customer_id)
@@ -325,7 +323,7 @@ recipe_spend_prob %>% prep() %>% juice() %>% glimpse()
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 summary(recipe_spend_prob)
 ```
 
@@ -333,7 +331,7 @@ summary(recipe_spend_prob)
 
 Model 1: 90-Day Spend Prediction
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 wflw_spend_total_xgb <- workflow() %>%
     add_model(
         boost_tree(
@@ -348,7 +346,7 @@ wflw_spend_total_xgb <- workflow() %>%
 
 Model 2: 90-Day Spend Probability 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 wflw_spend_prob_xgb <- workflow() %>%
     add_model(
         boost_tree(
@@ -364,7 +362,7 @@ wflw_spend_prob_xgb <- workflow() %>%
 # TEST SET EVALUATION
 
 Make Test Predictions
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl <-  bind_cols(
   predict(wflw_spend_total_xgb, test_tbl) %>%
     rename(.pred_total = .pred),
@@ -380,18 +378,18 @@ predictions_test_tbl <-  bind_cols(
 
 # Model Test Accuracy
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl %>%
     yardstick::mae(spend_90_total, .pred_total)
 ```
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl %>%
     yardstick::roc_auc(spend_90_flag, .pred_prob, event_level = "second")
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl %>%
     yardstick::roc_curve(spend_90_flag, .pred_prob, event_level = "second")%>%
     autoplot()
@@ -403,14 +401,14 @@ predictions_test_tbl %>%
 
 ## Probability Model 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 vip(wflw_spend_prob_xgb$fit$fit,
     aesthetics = list(color = "grey50", fill = "grey50"))
 ```
 
 ## Spend Model
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 vip(wflw_spend_total_xgb$fit$fit,
     aesthetics = list(color = "grey50", fill = "grey50"))
 ```
@@ -420,7 +418,7 @@ vip(wflw_spend_total_xgb$fit$fit,
 
 SAVE WORK
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 fs::dir_create("cust/artifacts")
 
 wflw_spend_prob_xgb %>% write_rds("cust/artifacts/bus_model_prob.rds")
@@ -433,7 +431,7 @@ vi_model(wflw_spend_total_xgb$fit$fit) %>% write_rds("cust/artifacts/bus_vi_spen
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 all_tbl <- bind_rows(train_tbl, test_tbl)
 predictions_all_tbl <- bind_cols(
   predict(wflw_spend_total_xgb, all_tbl) %>%
@@ -447,7 +445,7 @@ predictions_all_tbl <- bind_cols(
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_all_tbl %>% write_rds("cust/artifacts/bus_predictions_all_tbl.rds")
 ```
 
@@ -457,7 +455,7 @@ predictions_all_tbl %>% write_rds("cust/artifacts/bus_predictions_all_tbl.rds")
 Which customers have the highest spend probability in next 90-days?
 - Target for new products similar to what they have purchased in the past
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl %>%
     arrange(desc(.pred_prob))
 ```
@@ -468,7 +466,7 @@ Which customers have recently purchased but are unlikely to buy?
 - Incentivize actions to increase probability
 - Provide discounts, encourage referring a friend, nurture by letting them know what's coming
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl %>%
   filter(recency    > -50,
          .pred_prob < 0.2) %>%
@@ -479,7 +477,7 @@ predictions_test_tbl %>%
 
 Missed opportunities: Big spenders that could be targeted
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 predictions_test_tbl %>%
     arrange(desc(.pred_total)) %>%
     filter(
@@ -489,12 +487,12 @@ predictions_test_tbl %>%
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 prediction_tbl_1 <- readr::read_rds("cust/artifacts/bus_predictions_all_tbl.rds")
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 prediction <-prediction_tbl_1 %>%
     arrange(desc(.pred_total)) %>%
     filter(spend_90_total < 0.6 * .pred_total) %>%
@@ -517,7 +515,7 @@ prediction <-prediction_tbl_1 %>%
 ```
 
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 big_spenders <- prediction %>%
     # filter("90-Day Spend (Predict)" >= 150.00) %>%
     gt() %>%
