@@ -1,0 +1,21 @@
+---
+title: "Regression, Feature Importance & Revenue Forecasting"
+subtitle: ""
+excerpt: "We'll analyze regression coefficients with bootstrap resamples, visualize most important features and forecast future revenue"
+date: 2022-11-28
+author: "Alex Labuda"
+draft: true
+thumbnail_left: true # for list-sidebar only
+show_author_byline: true
+images: 
+series:
+tags: ["machine learning", "regression", "feature importance", "time-series forecasting"]
+categories:
+layout: single
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 5)
+library(tidyverse)
+theme_set(theme_minimal())
+```
