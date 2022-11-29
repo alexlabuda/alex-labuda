@@ -15,7 +15,158 @@ layout: single
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 5)
-library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5)
+
 theme_set(theme_minimal())
 ```
+
+# Packages
+
+```{r}
+library(tidyverse)
+library(modeltime)
+library(timetk)
+library(lubridate)
+
+interactive <- FALSE
+```
+
+# The Data
+
+We will analyze weekly marketing spend and revenue figures a company.
+
+```{r}
+df <- 
+  read_csv(
+    file = "data/marketing_data.csv"
+  ) %>% 
+  mutate(
+    date = mdy(date)
+  )
+```
+
+# Visualize the Data
+
+First lets visualize our target variable, `revenue`
+```{r}
+df %>% 
+  ggplot(aes(date, revenue)) +
+  geom_line() +
+  geom_smooth(se = FALSE, color = "darkred") +
+  labs(title = "Revenue",
+       x = "")
+```
+
+# Fit Simple Regression Model
+
+First we'll start by fitting a simple regression model to the data
+
+```{r}
+df %>%
+    plot_time_series_regression(
+        .date_var     = date,
+        .formula      = revenue ~ as.numeric(date),
+        .interactive  = interactive,
+        .show_summary = FALSE
+    )
+```
+
+We can make a more accurate model by using month of year as independent variables for our model
+
+```{r}
+df %>%
+    plot_time_series_regression(
+        .date_var     = date,
+        .formula      = revenue ~ as.numeric(date) + month(date, label = TRUE),
+        .interactive  = interactive,
+        .show_summary = FALSE
+    )
+```
+
+We can also introduce our spend variables as input to our model to study each channels effect on revenue
+
+```{r}
+df %>%
+    plot_time_series_regression(
+        .date_var     = date,
+        .formula      = revenue ~ as.numeric(date) + month(date, label = TRUE) + tv_spend +
+          billboard_spend + print_spend + search_spend + facebook_spend + competitor_sales,
+        .interactive  = interactive,
+        .show_summary = FALSE
+    )
+```
+# A Simple Linear Model
+
+Lets take a look at our simple model output that includes direct marketing features
+- TV spend, print spend, competitor sales and Facebook spend are statistically significant
+- Print spend has the largest positive effect at increasing revenue
+
+```{r}
+# forcing intercept to 0 to just show the gap from 0 instead of a base
+revenue_fit <- lm(revenue ~ as.numeric(date) + tv_spend + billboard_spend + print_spend + 
+                    search_spend + facebook_spend + competitor_sales, data = df)
+summary(revenue_fit)
+```
+
+## Visualizing coefficients
+```{r}
+library(broom)
+library(dotwhisker)
+
+tidy(revenue_fit) %>% 
+  filter(p.value < 0.1) %>% 
+  mutate(
+         term = fct_reorder(term, -estimate)) %>% 
+  dwplot(
+    vars_order = levels(.$term),
+    dot_args = list(size = 3, color = "darkred"),
+  whisker_args = list(color = "darkred", alpha = 0.75)
+  ) +
+  labs(x = "Coefficient by channel", y = NULL, title = "Simple Linear Model Coefficients", subtitle = "95% Confidence Intervals")
+```
+
+# Bootstrap Resampling 
+
+## How reliable are our coefficients?
+
+We can fit many bootstrapped resampled models to determine the stability of our coefficient estimates
+
+- By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
+
+```{r}
+library(rsample)
+
+revenue_intervals <-
+  reg_intervals(revenue ~ as.numeric(date) + tv_spend + billboard_spend + print_spend + 
+                    search_spend + facebook_spend + competitor_sales,
+                data = df, keep_reps = TRUE)
+
+revenue_intervals
+```
+
+## Visualizing our Bootstrapped Resampled Coefficients
+
+### Crossbar chart
+
+```{r}
+revenue_intervals %>%
+  filter(!term == "as.numeric(date)") %>% 
+    mutate(
+        term = fct_reorder(term, .estimate)
+    ) %>%
+    ggplot(aes(.estimate, term)) +
+    geom_crossbar(aes(xmin = .lower, xmax = .upper),
+                  color = "darkred", alpha = 0.8) +
+  labs(x = "Coefficient by channel", 
+       y = NULL, 
+       title = "Bootstrapped Resampled Model Coefficients", 
+       subtitle = "95% Confidence Intervals")
+```
+
+
+
+
+
+
+
+

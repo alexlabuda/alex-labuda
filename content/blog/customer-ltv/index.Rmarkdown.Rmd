@@ -15,8 +15,8 @@ layout: single
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 5)
-library(tidyverse)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5)
+
 theme_set(theme_minimal())
 ```
 
@@ -28,7 +28,7 @@ In this blog we will wrangle customer spend and behavior data to engineer recenc
 
 This can help marketers identify and target customers they are highly likely to spend, as well customers that are highly likely to spend even more.
 
-```{r warning=FALSE, message=FALSE}
+```{r include=TRUE}
 library(tidymodels)
 library(vip)
 library(tidyverse)
@@ -39,7 +39,7 @@ library(gt)
 
 
 # Data Prep
-```{r echo = FALSE, results='asis', warning=FALSE, message=FALSE}
+```{r}
 library(knitr)
 cust_raw <- read_csv("data/cust_sales.csv")
 
