@@ -20,6 +20,8 @@ library(tidyverse)
 theme_set(theme_minimal())
 ```
 
+![](featured.jpg)
+
 In this post, I'll begin by visualizing marketing related time-series data which includes revenue and spend for several direct marketing channels.
 
 I will then fit a simple regression model and examine the effect of each channel on revenue.
@@ -51,6 +53,7 @@ df <-
 # Visualize the Data
 
 First lets visualize our target variable, `revenue`
+
 ```{r}
 df %>% 
   ggplot(aes(date, revenue)) +
@@ -101,13 +104,13 @@ df %>%
 
 # A Simple Linear Model
 
-
 Now lets take a look at our simple model output that includes direct marketing features and examine their effect of revenue
 
 We can see that:
-- TV spend, print spend, competitor sales and Facebook spend are statistically significant
-- Print spend has the largest positive effect at increasing revenue of each direct marketing input
-- A largest positive intercept suggests that this company has a strong baseline of sales 
+
+-   TV spend, print spend, competitor sales and Facebook spend are statistically significant
+-   Print spend has the largest positive effect at increasing revenue of each direct marketing input
+-   A largest positive intercept suggests that this company has a strong baseline of sales
 
 ```{r}
 # forcing intercept to 0 to just show the gap from 0 instead of a base
@@ -120,8 +123,9 @@ summary(revenue_fit)
 
 We can plot the coefficient and confidence intervals to make it easier to see the reliability of each estimate
 
-- Print spend has the largest positive coefficient, but also the widest confidence interval
-- Our model is very confident in the estimated effect of competitor sales
+-   Print spend has the largest positive coefficient, but also the widest confidence interval
+-   Our model is very confident in the estimated effect of competitor sales
+
 ```{r}
 library(broom)
 library(dotwhisker)
@@ -138,13 +142,13 @@ tidy(revenue_fit) %>%
   labs(x = "Coefficient by channel", y = NULL, title = "Simple Linear Model Coefficients", subtitle = "95% Confidence Intervals")
 ```
 
-# Fit: Bootstrap Resampling 
+# Fit: Bootstrap Resampling
 
 ## How reliable are our coefficients?
 
 We can fit many bootstrapped resampled models to determine the stability of our coefficient estimates. Essentially this is fitting many small models to examine the variation of each channel's coefficient.
 
-- By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
+-   By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
 
 ```{r}
 library(rsample)
@@ -161,8 +165,9 @@ revenue_intervals
 
 ### Crossbar chart
 
-- Here we can see the wide confidence interval surround `search_spend`. 
-- This makes sense since the coefficient for this channel in our first linear model was not statistically significant. 
+-   Here we can see the wide confidence interval surround `search_spend`.
+-   This makes sense since the coefficient for this channel in our first linear model was not statistically significant.
+
 ```{r}
 revenue_intervals %>%
   filter(!term == "as.numeric(date)") %>% 
@@ -181,6 +186,7 @@ revenue_intervals %>%
 # Time-Series Forecasting
 
 Lets build our forecasting model
+
 ```{r}
 df_ts <- 
   df %>% 
@@ -224,10 +230,12 @@ bake(prep(recipe_spec_timeseries), new_data = training(splits))
 ### Preprocessing Steps
 
 Now we'll add a few additional preprocessing steps to our recipe:
-- Convert a date column into a Fourier series
-- Remove date
-- Normalize the inputs
-- one-hot encoding (add dummies)
+
+-   Convert a date column into a Fourier series
+-   Remove date
+-   Normalize the inputs
+-   one-hot encoding (add dummies)
+
 ```{r}
 recipe_spec_final <- recipe_spec_timeseries %>%
     step_fourier(date, period = 365, K = 1) %>%
@@ -243,6 +251,7 @@ juice(prep(recipe_spec_final))
 ## Model Specs
 
 Now we can fit a simple linear model
+
 ```{r}
 model_spec_lm <- linear_reg(mode = "regression") %>%
     set_engine("lm")
@@ -251,6 +260,7 @@ model_spec_lm <- linear_reg(mode = "regression") %>%
 ## Workflow
 
 We can add our recipe and model to a workflow
+
 ```{r}
 workflow_lm <- workflow() %>%
     add_recipe(recipe_spec_final) %>%
@@ -260,10 +270,10 @@ workflow_lm
 ```
 
 ## Fit our Model
+
 ```{r}
 workflow_fit_lm <- workflow_lm %>% fit(data = training(splits))
 ```
-
 
 ```{r}
 model_table <- modeltime_table(
@@ -277,6 +287,7 @@ calibration_table <- model_table %>%
 ## Forcasting Results
 
 Lets visualize our models prediction accuracy
+
 ```{r}
 calibration_table %>%
   modeltime_forecast(actual_data = df_ts) %>%
@@ -290,9 +301,3 @@ calibration_table %>%
 ```
 
 Thanks for reading, I hope you found this post useful.
-
-
-
-
-
-
