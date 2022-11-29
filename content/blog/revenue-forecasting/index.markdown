@@ -63,7 +63,7 @@ df %>%
 
 # Fit: Simple Regression Model
 
-First we'll start by fitting a simple regression model to the data
+First we'll start by fitting a simple regression model to the data. This is just the grand mean of our data.
 
 
 ```r
@@ -111,7 +111,10 @@ df %>%
 
 # A Simple Linear Model
 
-Lets take a look at our simple model output that includes direct marketing features
+
+Now lets take a look at our simple model output that includes direct marketing features and examine their effect of revenue
+
+We can see that:
 - TV spend, print spend, competitor sales and Facebook spend are statistically significant
 - Print spend has the largest positive effect at increasing revenue
 
@@ -154,6 +157,11 @@ summary(revenue_fit)
 
 ## Viz: SLM coefficients
 
+We can plot the coefficient and confidence intervals to make it easier to see the reliability of each estimate
+
+- Print spend has the largest positive coefficient, but also the widest confidence interval
+- Our model is very confident in the estimated effect of competitor sales
+
 ```r
 library(broom)
 library(dotwhisker)
@@ -176,7 +184,7 @@ tidy(revenue_fit) %>%
 
 ## How reliable are our coefficients?
 
-We can fit many bootstrapped resampled models to determine the stability of our coefficient estimates
+We can fit many bootstrapped resampled models to determine the stability of our coefficient estimates. Essentially this is fitting many small models to examine the variation of each channel's coefficient.
 
 - By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
 
@@ -196,19 +204,21 @@ revenue_intervals
 ## # A tibble: 7 × 7
 ##   term                .lower .estimate .upper .alpha .method         .replicates
 ##   <chr>                <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2]>
-## 1 as.numeric(date) -137.      -32.4    64.7     0.05 student-t       [1,001 × 2]
-## 2 billboard_spend    -0.114     0.0386  0.165   0.05 student-t       [1,001 × 2]
-## 3 competitor_sales    0.264     0.286   0.305   0.05 student-t       [1,001 × 2]
-## 4 facebook_spend     -0.0162    0.364   0.721   0.05 student-t       [1,001 × 2]
-## 5 print_spend         0.302     0.865   1.45    0.05 student-t       [1,001 × 2]
-## 6 search_spend       -0.520     0.544   1.65    0.05 student-t       [1,001 × 2]
-## 7 tv_spend            0.234     0.514   0.768   0.05 student-t       [1,001 × 2]
+## 1 as.numeric(date) -139.      -33.0    68.7     0.05 student-t       [1,001 × 2]
+## 2 billboard_spend    -0.113     0.0377  0.170   0.05 student-t       [1,001 × 2]
+## 3 competitor_sales    0.261     0.287   0.305   0.05 student-t       [1,001 × 2]
+## 4 facebook_spend     -0.0353    0.362   0.726   0.05 student-t       [1,001 × 2]
+## 5 print_spend         0.258     0.864   1.43    0.05 student-t       [1,001 × 2]
+## 6 search_spend       -0.597     0.517   1.73    0.05 student-t       [1,001 × 2]
+## 7 tv_spend            0.239     0.507   0.767   0.05 student-t       [1,001 × 2]
 ```
 
 ## Viz: Bootstrapped Resampled Coefficients
 
 ### Crossbar chart
 
+- Here we can see the wide confidence interval surround `search_spend`. 
+- This makes sense since the coefficient for this channel in our first linear model was not statistically significant. 
 
 ```r
 revenue_intervals %>%
@@ -247,6 +257,8 @@ df_ts %>%
 
 ## Training & Testing Splits
 
+First I'll split the data into training and testing sets
+
 
 ```r
 splits <- 
@@ -262,6 +274,8 @@ splits %>%
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-12-1.png" width="768" />
 
 ## Modeling
+
+Now we can begin the recipe for our model. After baking, we can see what the output looks like.
 
 
 ```r
@@ -298,9 +312,10 @@ bake(prep(recipe_spec_timeseries), new_data = training(splits))
 
 ### Preprocessing Steps
 
+Now we'll add a few additional preprocessing steps to our recipe:
 - Convert a date column into a Fourier series
 - Remove date
-- Normalize
+- Normalize the inputs
 - one-hot encoding (add dummies)
 
 ```r
@@ -340,7 +355,7 @@ juice(prep(recipe_spec_final))
 
 ## Model Specs
 
-- Linear model
+Now we can fit a simple linear model
 
 ```r
 model_spec_lm <- linear_reg(mode = "regression") %>%
@@ -348,6 +363,8 @@ model_spec_lm <- linear_reg(mode = "regression") %>%
 ```
 
 ## Workflow
+
+We can add our recipe and model to a workflow
 
 ```r
 workflow_lm <- workflow() %>%
