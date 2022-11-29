@@ -16,14 +16,13 @@ layout: single
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5)
-
+library(tidyverse)
 theme_set(theme_minimal())
 ```
 
 # Packages
 
 ```{r}
-library(tidyverse)
 library(modeltime)
 library(timetk)
 library(lubridate)
@@ -194,6 +193,7 @@ splits %>%
 ## Modeling
 
 ```{r}
+library(tidymodels)
 recipe_spec_timeseries <- 
   recipe(revenue ~., data = training(splits)) %>%
     step_timeseries_signature(date) 
