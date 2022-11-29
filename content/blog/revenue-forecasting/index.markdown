@@ -16,7 +16,13 @@ layout: single
 
 
 
-# Packages
+In this post, I'll begin by visualizing marketing related time-series data which includes revenue and spend for several direct marketing channels.
+
+I will then fit a simple regression model and examine the effect of each channel on revenue.
+
+In order to better understand the reliability of each coefficient, I will fit many bootstrapped resamples to develop a more robust estimate of each coefficient.
+
+Lastly, I will create a forecasting model to predict future revenue. Enjoy!
 
 
 ```r
@@ -104,6 +110,7 @@ df %>%
 ```
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="768" />
+
 # A Simple Linear Model
 
 Lets take a look at our simple model output that includes direct marketing features
@@ -189,15 +196,15 @@ revenue_intervals
 
 ```
 ## # A tibble: 7 × 7
-##   term                .lower .estimate .upper .alpha .method         .replicates
-##   <chr>                <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2]>
-## 1 as.numeric(date) -136.      -31.9    63.7     0.05 student-t       [1,001 × 2]
-## 2 billboard_spend    -0.118     0.0425  0.168   0.05 student-t       [1,001 × 2]
-## 3 competitor_sales    0.263     0.287   0.305   0.05 student-t       [1,001 × 2]
-## 4 facebook_spend     -0.0147    0.356   0.697   0.05 student-t       [1,001 × 2]
-## 5 print_spend         0.273     0.864   1.40    0.05 student-t       [1,001 × 2]
-## 6 search_spend       -0.665     0.539   1.75    0.05 student-t       [1,001 × 2]
-## 7 tv_spend            0.198     0.513   0.759   0.05 student-t       [1,001 × 2]
+##   term                 .lower .estimate .upper .alpha .method        .replicates
+##   <chr>                 <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2>
+## 1 as.numeric(date) -134.       -34.2    64.0     0.05 student-t      [1,001 × 2]
+## 2 billboard_spend    -0.101      0.0381  0.169   0.05 student-t      [1,001 × 2]
+## 3 competitor_sales    0.266      0.286   0.305   0.05 student-t      [1,001 × 2]
+## 4 facebook_spend     -0.00637    0.367   0.718   0.05 student-t      [1,001 × 2]
+## 5 print_spend         0.223      0.865   1.42    0.05 student-t      [1,001 × 2]
+## 6 search_spend       -0.551      0.529   1.72    0.05 student-t      [1,001 × 2]
+## 7 tv_spend            0.225      0.510   0.753   0.05 student-t      [1,001 × 2]
 ```
 
 ## Viz: Bootstrapped Resampled Coefficients

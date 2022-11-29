@@ -20,7 +20,13 @@ library(tidyverse)
 theme_set(theme_minimal())
 ```
 
-# Packages
+In this post, I'll begin by visualizing marketing related time-series data which includes revenue and spend for several direct marketing channels.
+
+I will then fit a simple regression model and examine the effect of each channel on revenue.
+
+In order to better understand the reliability of each coefficient, I will fit many bootstrapped resamples to develop a more robust estimate of each coefficient.
+
+Lastly, I will create a forecasting model to predict future revenue. Enjoy!
 
 ```{r}
 library(modeltime)
@@ -31,8 +37,6 @@ interactive <- FALSE
 ```
 
 # The Data
-
-We will analyze weekly marketing spend and revenue figures a company.
 
 ```{r}
 df <- 
@@ -94,6 +98,7 @@ df %>%
         .show_summary = FALSE
     )
 ```
+
 # A Simple Linear Model
 
 Lets take a look at our simple model output that includes direct marketing features
