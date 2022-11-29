@@ -202,15 +202,15 @@ revenue_intervals
 
 ```
 ## # A tibble: 7 × 7
-##   term                .lower .estimate .upper .alpha .method         .replicates
-##   <chr>                <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2]>
-## 1 as.numeric(date) -139.      -33.0    68.7     0.05 student-t       [1,001 × 2]
-## 2 billboard_spend    -0.113     0.0377  0.170   0.05 student-t       [1,001 × 2]
-## 3 competitor_sales    0.261     0.287   0.305   0.05 student-t       [1,001 × 2]
-## 4 facebook_spend     -0.0353    0.362   0.726   0.05 student-t       [1,001 × 2]
-## 5 print_spend         0.258     0.864   1.43    0.05 student-t       [1,001 × 2]
-## 6 search_spend       -0.597     0.517   1.73    0.05 student-t       [1,001 × 2]
-## 7 tv_spend            0.239     0.507   0.767   0.05 student-t       [1,001 × 2]
+##   term                 .lower .estimate .upper .alpha .method        .replicates
+##   <chr>                 <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2>
+## 1 as.numeric(date) -133.       -35.3    67.0     0.05 student-t      [1,001 × 2]
+## 2 billboard_spend    -0.0947     0.0327  0.174   0.05 student-t      [1,001 × 2]
+## 3 competitor_sales    0.265      0.286   0.303   0.05 student-t      [1,001 × 2]
+## 4 facebook_spend      0.00496    0.358   0.698   0.05 student-t      [1,001 × 2]
+## 5 print_spend         0.251      0.859   1.43    0.05 student-t      [1,001 × 2]
+## 6 search_spend       -0.591      0.534   1.76    0.05 student-t      [1,001 × 2]
+## 7 tv_spend            0.234      0.511   0.770   0.05 student-t      [1,001 × 2]
 ```
 
 ## Viz: Bootstrapped Resampled Coefficients
@@ -414,6 +414,7 @@ calibration_table <- model_table %>%
 
 ## Forcasting Results
 
+Lets visualize our models prediction accuracy
 
 ```r
 calibration_table %>%
@@ -429,7 +430,7 @@ calibration_table %>%
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-19-1.png" width="768" />
 
-
+Thanks for reading, I hope you found this post useful.
 
 
 
