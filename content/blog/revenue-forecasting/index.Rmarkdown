@@ -1,10 +1,10 @@
 ---
-title: "Regression, Feature Importance & Revenue Forecasting"
+title: "Bootstrapped Resampling Regression & Revenue Forecasting"
 subtitle: ""
-excerpt: "We'll analyze regression coefficients with bootstrap resamples, visualize most important features and forecast future revenue"
+excerpt: "We'll analyze regression coefficients with bootstrapped resamples, visualize most important features and forecast future revenue"
 date: 2022-11-28
 author: "Alex Labuda"
-draft: true
+draft: false
 thumbnail_left: true # for list-sidebar only
 show_author_byline: true
 images: 
@@ -57,7 +57,7 @@ df %>%
        x = "")
 ```
 
-# Fit Simple Regression Model
+# Fit: Simple Regression Model
 
 First we'll start by fitting a simple regression model to the data
 
@@ -108,7 +108,7 @@ revenue_fit <- lm(revenue ~ as.numeric(date) + tv_spend + billboard_spend + prin
 summary(revenue_fit)
 ```
 
-## Visualizing coefficients
+## Viz: SLM coefficients
 ```{r}
 library(broom)
 library(dotwhisker)
@@ -125,7 +125,7 @@ tidy(revenue_fit) %>%
   labs(x = "Coefficient by channel", y = NULL, title = "Simple Linear Model Coefficients", subtitle = "95% Confidence Intervals")
 ```
 
-# Bootstrap Resampling 
+# Fit: Bootstrap Resampling 
 
 ## How reliable are our coefficients?
 
@@ -144,7 +144,7 @@ revenue_intervals <-
 revenue_intervals
 ```
 
-## Visualizing our Bootstrapped Resampled Coefficients
+## Viz: Bootstrapped Resampled Coefficients
 
 ### Crossbar chart
 
@@ -161,6 +161,108 @@ revenue_intervals %>%
        y = NULL, 
        title = "Bootstrapped Resampled Model Coefficients", 
        subtitle = "95% Confidence Intervals")
+```
+
+# Time-Series Forecasting
+
+Lets build our forecasting model
+```{r}
+df_ts <- 
+  df %>% 
+  select(date, revenue)
+
+df_ts %>% 
+  ggplot(aes(date, revenue)) +
+  geom_line() +
+  labs(title = "Revenue",
+       x = "")
+```
+
+## Training & Testing Splits
+
+```{r}
+splits <- 
+  df_ts %>% 
+  time_series_split(assess = "12 months", cumulative = TRUE)
+
+splits %>% 
+  tk_time_series_cv_plan() %>% 
+  plot_time_series_cv_plan(date, revenue, .interactive = interactive) +
+  labs(title = "Timeseries - Training / Testing Split")
+```
+
+## Modeling
+
+```{r}
+recipe_spec_timeseries <- 
+  recipe(revenue ~., data = training(splits)) %>%
+    step_timeseries_signature(date) 
+
+bake(prep(recipe_spec_timeseries), new_data = training(splits))
+```
+
+### Preprocessing Steps
+
+- Convert a date column into a Fourier series
+- Remove date
+- Normalize
+- one-hot encoding (add dummies)
+```{r}
+recipe_spec_final <- recipe_spec_timeseries %>%
+    step_fourier(date, period = 365, K = 1) %>%
+    step_rm(date) %>%
+    step_rm(contains("iso"), contains("minute"), contains("hour"),
+            contains("am.pm"), contains("xts")) %>%
+    step_normalize(contains("index.num"), date_year) %>%
+    step_dummy(contains("lbl"), one_hot = TRUE) 
+
+juice(prep(recipe_spec_final))
+```
+
+## Model Specs
+
+- Linear model
+```{r}
+model_spec_lm <- linear_reg(mode = "regression") %>%
+    set_engine("lm")
+```
+
+## Workflow
+```{r}
+workflow_lm <- workflow() %>%
+    add_recipe(recipe_spec_final) %>%
+    add_model(model_spec_lm)
+
+workflow_lm
+```
+
+## Fit our Model
+```{r}
+workflow_fit_lm <- workflow_lm %>% fit(data = training(splits))
+```
+
+
+```{r}
+model_table <- modeltime_table(
+  workflow_fit_lm
+) 
+
+calibration_table <- model_table %>%
+  modeltime_calibrate(testing(splits))
+```
+
+## Forcasting Results
+
+```{r}
+calibration_table %>%
+  modeltime_forecast(actual_data = df_ts) %>%
+  plot_modeltime_forecast(.interactive = FALSE) +
+  labs(
+    y = "Revenue",
+    title = "Revenue",
+    subtitle = "Actual vs Predicted"
+  ) +
+  theme(legend.position = "none")
 ```
 
 
