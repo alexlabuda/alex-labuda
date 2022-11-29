@@ -35,8 +35,6 @@ interactive <- FALSE
 
 # The Data
 
-We will analyze weekly marketing spend and revenue figures a company.
-
 
 ```r
 df <- 
@@ -196,15 +194,15 @@ revenue_intervals
 
 ```
 ## # A tibble: 7 × 7
-##   term                 .lower .estimate .upper .alpha .method        .replicates
-##   <chr>                 <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2>
-## 1 as.numeric(date) -134.       -34.2    64.0     0.05 student-t      [1,001 × 2]
-## 2 billboard_spend    -0.101      0.0381  0.169   0.05 student-t      [1,001 × 2]
-## 3 competitor_sales    0.266      0.286   0.305   0.05 student-t      [1,001 × 2]
-## 4 facebook_spend     -0.00637    0.367   0.718   0.05 student-t      [1,001 × 2]
-## 5 print_spend         0.223      0.865   1.42    0.05 student-t      [1,001 × 2]
-## 6 search_spend       -0.551      0.529   1.72    0.05 student-t      [1,001 × 2]
-## 7 tv_spend            0.225      0.510   0.753   0.05 student-t      [1,001 × 2]
+##   term                .lower .estimate .upper .alpha .method         .replicates
+##   <chr>                <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2]>
+## 1 as.numeric(date) -137.      -32.4    64.7     0.05 student-t       [1,001 × 2]
+## 2 billboard_spend    -0.114     0.0386  0.165   0.05 student-t       [1,001 × 2]
+## 3 competitor_sales    0.264     0.286   0.305   0.05 student-t       [1,001 × 2]
+## 4 facebook_spend     -0.0162    0.364   0.721   0.05 student-t       [1,001 × 2]
+## 5 print_spend         0.302     0.865   1.45    0.05 student-t       [1,001 × 2]
+## 6 search_spend       -0.520     0.544   1.65    0.05 student-t       [1,001 × 2]
+## 7 tv_spend            0.234     0.514   0.768   0.05 student-t       [1,001 × 2]
 ```
 
 ## Viz: Bootstrapped Resampled Coefficients
