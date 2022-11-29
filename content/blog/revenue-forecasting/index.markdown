@@ -16,6 +16,8 @@ layout: single
 
 
 
+![](featured.jpg)
+
 In this post, I'll begin by visualizing marketing related time-series data which includes revenue and spend for several direct marketing channels.
 
 I will then fit a simple regression model and examine the effect of each channel on revenue.
@@ -49,6 +51,7 @@ df <-
 # Visualize the Data
 
 First lets visualize our target variable, `revenue`
+
 
 ```r
 df %>% 
@@ -111,13 +114,13 @@ df %>%
 
 # A Simple Linear Model
 
-
 Now lets take a look at our simple model output that includes direct marketing features and examine their effect of revenue
 
 We can see that:
-- TV spend, print spend, competitor sales and Facebook spend are statistically significant
-- Print spend has the largest positive effect at increasing revenue of each direct marketing input
-- A largest positive intercept suggests that this company has a strong baseline of sales 
+
+-   TV spend, print spend, competitor sales and Facebook spend are statistically significant
+-   Print spend has the largest positive effect at increasing revenue of each direct marketing input
+-   A largest positive intercept suggests that this company has a strong baseline of sales
 
 
 ```r
@@ -160,8 +163,9 @@ summary(revenue_fit)
 
 We can plot the coefficient and confidence intervals to make it easier to see the reliability of each estimate
 
-- Print spend has the largest positive coefficient, but also the widest confidence interval
-- Our model is very confident in the estimated effect of competitor sales
+-   Print spend has the largest positive coefficient, but also the widest confidence interval
+-   Our model is very confident in the estimated effect of competitor sales
+
 
 ```r
 library(broom)
@@ -181,13 +185,13 @@ tidy(revenue_fit) %>%
 
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-8-1.png" width="768" />
 
-# Fit: Bootstrap Resampling 
+# Fit: Bootstrap Resampling
 
 ## How reliable are our coefficients?
 
 We can fit many bootstrapped resampled models to determine the stability of our coefficient estimates. Essentially this is fitting many small models to examine the variation of each channel's coefficient.
 
-- By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
+-   By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
 
 
 ```r
@@ -203,23 +207,24 @@ revenue_intervals
 
 ```
 ## # A tibble: 7 × 7
-##   term                 .lower .estimate .upper .alpha .method        .replicates
-##   <chr>                 <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2>
-## 1 as.numeric(date) -146.       -30.7    63.3     0.05 student-t      [1,001 × 2]
-## 2 billboard_spend    -0.115      0.0372  0.171   0.05 student-t      [1,001 × 2]
-## 3 competitor_sales    0.263      0.286   0.306   0.05 student-t      [1,001 × 2]
-## 4 facebook_spend     -0.00893    0.363   0.722   0.05 student-t      [1,001 × 2]
-## 5 print_spend         0.291      0.848   1.39    0.05 student-t      [1,001 × 2]
-## 6 search_spend       -0.590      0.526   1.76    0.05 student-t      [1,001 × 2]
-## 7 tv_spend            0.234      0.510   0.758   0.05 student-t      [1,001 × 2]
+##   term                .lower .estimate .upper .alpha .method         .replicates
+##   <chr>                <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2]>
+## 1 as.numeric(date) -135.      -33.2    68.1     0.05 student-t       [1,001 × 2]
+## 2 billboard_spend    -0.109     0.0379  0.176   0.05 student-t       [1,001 × 2]
+## 3 competitor_sales    0.263     0.286   0.305   0.05 student-t       [1,001 × 2]
+## 4 facebook_spend     -0.0376    0.364   0.718   0.05 student-t       [1,001 × 2]
+## 5 print_spend         0.264     0.865   1.43    0.05 student-t       [1,001 × 2]
+## 6 search_spend       -0.543     0.552   1.70    0.05 student-t       [1,001 × 2]
+## 7 tv_spend            0.236     0.508   0.771   0.05 student-t       [1,001 × 2]
 ```
 
 ## Viz: Bootstrapped Resampled Coefficients
 
 ### Crossbar chart
 
-- Here we can see the wide confidence interval surround `search_spend`. 
-- This makes sense since the coefficient for this channel in our first linear model was not statistically significant. 
+-   Here we can see the wide confidence interval surround `search_spend`.
+-   This makes sense since the coefficient for this channel in our first linear model was not statistically significant.
+
 
 ```r
 revenue_intervals %>%
@@ -241,6 +246,7 @@ revenue_intervals %>%
 # Time-Series Forecasting
 
 Lets build our forecasting model
+
 
 ```r
 df_ts <- 
@@ -314,10 +320,12 @@ bake(prep(recipe_spec_timeseries), new_data = training(splits))
 ### Preprocessing Steps
 
 Now we'll add a few additional preprocessing steps to our recipe:
-- Convert a date column into a Fourier series
-- Remove date
-- Normalize the inputs
-- one-hot encoding (add dummies)
+
+-   Convert a date column into a Fourier series
+-   Remove date
+-   Normalize the inputs
+-   one-hot encoding (add dummies)
+
 
 ```r
 recipe_spec_final <- recipe_spec_timeseries %>%
@@ -358,6 +366,7 @@ juice(prep(recipe_spec_final))
 
 Now we can fit a simple linear model
 
+
 ```r
 model_spec_lm <- linear_reg(mode = "regression") %>%
     set_engine("lm")
@@ -366,6 +375,7 @@ model_spec_lm <- linear_reg(mode = "regression") %>%
 ## Workflow
 
 We can add our recipe and model to a workflow
+
 
 ```r
 workflow_lm <- workflow() %>%
@@ -398,10 +408,10 @@ workflow_lm
 
 ## Fit our Model
 
+
 ```r
 workflow_fit_lm <- workflow_lm %>% fit(data = training(splits))
 ```
-
 
 
 ```r
@@ -416,6 +426,7 @@ calibration_table <- model_table %>%
 ## Forcasting Results
 
 Lets visualize our models prediction accuracy
+
 
 ```r
 calibration_table %>%
@@ -432,9 +443,3 @@ calibration_table %>%
 <img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-19-1.png" width="768" />
 
 Thanks for reading, I hope you found this post useful.
-
-
-
-
-
-
