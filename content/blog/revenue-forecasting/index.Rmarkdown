@@ -106,7 +106,8 @@ Now lets take a look at our simple model output that includes direct marketing f
 
 We can see that:
 - TV spend, print spend, competitor sales and Facebook spend are statistically significant
-- Print spend has the largest positive effect at increasing revenue
+- Print spend has the largest positive effect at increasing revenue of each direct marketing input
+- A largest positive intercept suggests that this company has a strong baseline of sales 
 
 ```{r}
 # forcing intercept to 0 to just show the gap from 0 instead of a base

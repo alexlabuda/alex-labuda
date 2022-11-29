@@ -116,7 +116,8 @@ Now lets take a look at our simple model output that includes direct marketing f
 
 We can see that:
 - TV spend, print spend, competitor sales and Facebook spend are statistically significant
-- Print spend has the largest positive effect at increasing revenue
+- Print spend has the largest positive effect at increasing revenue of each direct marketing input
+- A largest positive intercept suggests that this company has a strong baseline of sales 
 
 
 ```r
@@ -204,13 +205,13 @@ revenue_intervals
 ## # A tibble: 7 × 7
 ##   term                 .lower .estimate .upper .alpha .method        .replicates
 ##   <chr>                 <dbl>     <dbl>  <dbl>  <dbl> <chr>     <list<tibble[,2>
-## 1 as.numeric(date) -133.       -35.3    67.0     0.05 student-t      [1,001 × 2]
-## 2 billboard_spend    -0.0947     0.0327  0.174   0.05 student-t      [1,001 × 2]
-## 3 competitor_sales    0.265      0.286   0.303   0.05 student-t      [1,001 × 2]
-## 4 facebook_spend      0.00496    0.358   0.698   0.05 student-t      [1,001 × 2]
-## 5 print_spend         0.251      0.859   1.43    0.05 student-t      [1,001 × 2]
-## 6 search_spend       -0.591      0.534   1.76    0.05 student-t      [1,001 × 2]
-## 7 tv_spend            0.234      0.511   0.770   0.05 student-t      [1,001 × 2]
+## 1 as.numeric(date) -146.       -30.7    63.3     0.05 student-t      [1,001 × 2]
+## 2 billboard_spend    -0.115      0.0372  0.171   0.05 student-t      [1,001 × 2]
+## 3 competitor_sales    0.263      0.286   0.306   0.05 student-t      [1,001 × 2]
+## 4 facebook_spend     -0.00893    0.363   0.722   0.05 student-t      [1,001 × 2]
+## 5 print_spend         0.291      0.848   1.39    0.05 student-t      [1,001 × 2]
+## 6 search_spend       -0.590      0.526   1.76    0.05 student-t      [1,001 × 2]
+## 7 tv_spend            0.234      0.510   0.758   0.05 student-t      [1,001 × 2]
 ```
 
 ## Viz: Bootstrapped Resampled Coefficients
