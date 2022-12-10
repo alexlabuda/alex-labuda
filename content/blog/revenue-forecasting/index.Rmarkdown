@@ -248,16 +248,25 @@ recipe_spec_final <- recipe_spec_timeseries %>%
     step_normalize(contains("index.num"), date_year) %>%
     step_dummy(contains("lbl"), one_hot = TRUE) 
 
+recipe_spec_prophet <- recipe_spec_timeseries
+
 juice(prep(recipe_spec_final))
 ```
 
 ## Model Specs
 
-Now we can fit a simple linear model
+1. linear regression
+2. xgboost
 
 ```{r}
 model_spec_lm <- linear_reg(mode = "regression") %>%
     set_engine("lm")
+
+model_spec_xgb <- boost_tree(mode = "regression") %>% 
+  set_engine("xgboost")
+
+model_spec_prophet <- prophet_reg(mode = "regression") %>% 
+  set_engine("prophet")
 ```
 
 ## Workflow
@@ -269,27 +278,54 @@ workflow_lm <- workflow() %>%
     add_recipe(recipe_spec_final) %>%
     add_model(model_spec_lm)
 
-workflow_lm
+workflow_xgb <- workflow() %>% 
+  add_recipe(recipe_spec_final) %>% 
+  add_model(model_spec_xgb)
+
+workflow_prophet <- workflow() %>% 
+  add_recipe(recipe_spec_prophet) %>% 
+  add_model(model_spec_prophet)
 ```
 
 ## Fit our Model
 
 ```{r}
-workflow_fit_lm <- workflow_lm %>% fit(data = training(splits))
+workflow_fit_lm <- 
+  workflow_lm %>% 
+  fit(data = training(splits))
+
+workflow_fit_xgb <- 
+  workflow_xgb %>% 
+  fit(data = training(splits))
+
+workflow_fit_prophet <-
+  workflow_prophet %>% 
+  fit(data = training(splits))
 ```
 
 ```{r}
 model_table <- modeltime_table(
-  workflow_fit_lm
+  workflow_fit_lm,
+  workflow_fit_xgb,
+  workflow_fit_prophet
 ) 
 
 calibration_table <- model_table %>%
   modeltime_calibrate(testing(splits))
 ```
 
+## Measure Accuracy
+
+```{r}
+calibration_table %>% 
+    modeltime_accuracy(acc_by_id = FALSE) %>% 
+    table_modeltime_accuracy(.interactive = FALSE)
+```
+
+
 ## Forcasting Results
 
-Lets visualize our models prediction accuracy
+Lets visualize each model's prediction accuracy
 
 ```{r}
 calibration_table %>%
@@ -303,4 +339,7 @@ calibration_table %>%
   theme(legend.position = "none")
 ```
 
-Thanks for reading, I hope you found this post useful.
+
+
+
+**Sources:** *Matt Dancho, Julia Silge*
