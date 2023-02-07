@@ -4,7 +4,7 @@ subtitle: ""
 excerpt: "We'll create an animated scatterplot examining the relationship between fertility rate and life expectancy from `1900 to present time"
 date: 2022-02-06
 author: "Alex Labuda"
-draft: true
+draft: false
 thumbnail_left: true # for list-sidebar only
 show_author_byline: true
 images: 
